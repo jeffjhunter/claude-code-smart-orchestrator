@@ -10,7 +10,7 @@ Do not post credentials, private traces, exploit details, or sensitive
 repository content in a public issue, discussion, or pull request.
 
 Use GitHub's [private vulnerability reporting
-form](https://github.com/jeffjhunter/codex-model-router-optimization/security/advisories/new)
+form](https://github.com/jeffjhunter/claude-code-smart-orchestrator/security/advisories/new)
 for the preferred confidential route. Private reporting is enabled for the
 project's public repository. Include the affected version, file, reproduction
 steps, impact, and a redacted proof.

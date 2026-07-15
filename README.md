@@ -1,5 +1,9 @@
 # Claude Code Smart Orchestrator
 
+[![CI](https://github.com/jeffjhunter/claude-code-smart-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffjhunter/claude-code-smart-orchestrator/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/jeffjhunter/claude-code-smart-orchestrator)](https://github.com/jeffjhunter/claude-code-smart-orchestrator/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0a7f78.svg)](LICENSE)
+
 Route Claude Code work by role, model alias, and effort level - then verify
 what actually ran.
 

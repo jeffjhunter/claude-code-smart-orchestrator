@@ -9,7 +9,7 @@ body:
         Do not include secrets, proprietary source, or unredacted runtime
         traces. If this may be a security vulnerability, stop and use the
         [private reporting
-        form](https://github.com/jeffjhunter/codex-model-router-optimization/security/advisories/new)
+        form](https://github.com/jeffjhunter/claude-code-smart-orchestrator/security/advisories/new)
         or the no-details fallback in SECURITY.md instead of filing this public
         issue.
   - type: input

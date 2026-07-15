@@ -17,4 +17,4 @@ This is not a promise of lower cost or better results. It is a practical way to 
 
 The full kit, visual guide, adversarial tests, and deterministic release archive are free under the MIT License. Built with appreciation for Matt Farmer's original model-routing idea and encouragement.
 
-Comment ORCHESTRATE and I will send it to you.
+Get it here: https://github.com/jeffjhunter/claude-code-smart-orchestrator
