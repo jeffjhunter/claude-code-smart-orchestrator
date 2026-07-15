@@ -8,21 +8,23 @@ Route Claude Code work by role, model alias, and effort level - then verify
 what actually ran. Version 2.1 adds Fable as an opt-in planning route without
 replacing the proven Opus planner.
 
-Version 2.1.2 separates the release into a lead-ready Giveaway ZIP and a
-copy-ready Team Assets ZIP so the AI Money Group team never has to assemble,
-strip, rename, or guess which files to send. The builder and verifier also
-reject stale or unexpected files in the release output directory.
+Version 2.1.3 keeps this public repository and its GitHub releases limited to
+the public Giveaway resource. Internal launch, delivery, automation, and
+promotional materials are maintained separately and are never packaged here.
+The builder and verifier reject stale or unexpected release outputs.
 
 ![Claude Code Smart Orchestrator v2.1 routing overview](Claude-Code-Smart-Orchestrator-Infographic.png)
 
-## Two clean release downloads
+## One public release download
 
-Every release is built into two audience-specific archives so nobody has to sort or remove files manually:
+The GitHub release contains one public Giveaway ZIP:
 
-- **Giveaway:** the PDF guide, five-agent starter system, setup instructions, validators, adversarial tests, evidence, license, credits, and safety documentation. This is the only ZIP sent to leads.
-- **Team Assets:** the social post, infographic, comment replies, delivery copy, launch checklist, and generated direct download links. This ZIP is for the AI Money Group team only.
+- **Giveaway:** the PDF guide, five-agent starter system, setup instructions,
+  validators, adversarial tests, evidence, license, credits, and safety
+  documentation.
 
-Repository source, CI configuration, visual source files, and release tooling are intentionally excluded from both audience archives.
+Repository source, CI configuration, editable visual source files, release
+tooling, and internal team materials are excluded from the Giveaway ZIP.
 
 ## Four proven lanes, plus an opt-in Fable planner
 
@@ -131,8 +133,8 @@ delete or securely retain them after review.
 - Separate direct-model and delegated-Agent trace verifiers with UTF-8 and UTF-16 support
 - Safe Windows setup, upgrade, merge, rollback, and uninstall guidance
 - A 14-page PDF guide and editable HTML/SVG visual sources
-- Separate deterministic Giveaway and Team Assets ZIPs with audience-specific manifests
-- Generated copy-ready delivery links so the team never assembles or strips files manually
+- One deterministic public Giveaway ZIP with a strict manifest
+- Explicit exclusion of internal team materials from the public repository package
 - Allowlisted deterministic release builder, checksums, coordinated commit marker, and trusted-source verifier
 
 Start with [README-FIRST.md](README-FIRST.md). The complete visual guide is

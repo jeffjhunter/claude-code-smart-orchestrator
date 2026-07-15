@@ -2,34 +2,35 @@
 
 All notable changes to this kit are documented here.
 
+## 2.1.3 - 2026-07-15
+
+### Public release boundary
+
+- Limited the public repository release builder to one Giveaway ZIP.
+- Removed internal launch, delivery, automation, and promotional files from the current public repository tree.
+- Removed all internal-team packaging paths, URL hydration, manifests, and tests from the public release workflow.
+- Reduced the coordinated public output set to the Giveaway ZIP, manifest, checksum, and commit marker.
+- Kept internal team resources outside this public repository and its GitHub releases.
+
 ## 2.1.2 - 2026-07-15
 
 ### Release hardening
 
 - Reject unexpected or stale files in `dist/` before publication and during release verification.
-- Prevent an obsolete Full Kit or unrelated internal archive from coexisting unnoticed with the two audience bundles.
-- Exercise rollback at every output boundary, including both ZIPs, both manifests, the checksum, and the final commit marker.
+- Prevent obsolete or unrelated archives from coexisting unnoticed with the public Giveaway.
+- Exercise rollback at every public output boundary, including the final commit marker.
 - Verify rollback from both previously published and initially empty output directories.
-- Add explicit tests for partial release sets, unknown placeholders, stale outputs, and canonical links in every link-bearing team file.
+- Add explicit tests for partial release sets and stale outputs.
 - Restore explicit ZIP checks for reserved fields, volume fields, and stored-member sizes.
 
 ## 2.1.1 - 2026-07-15
 
-### Changed
+### Public packaging
 
-- Split every release into a consumer-facing Giveaway ZIP and an internal Team Assets ZIP.
-- Removed repository source, CI files, release tooling, editable visual source, and promotional copy from the Giveaway ZIP.
-- Removed the runnable starter system and PDF payload from the Team Assets ZIP.
-- Added copy-ready comment replies, delivery copy, a launch checklist, and generated direct download links for the team.
-- Changed the social post to use the `ORCHESTRATE` comment CTA instead of sending readers to the repository.
-- Renamed the consumer entry file to `START-HERE.md` inside the Giveaway ZIP.
-
-### Release automation
-
-- Added audience-specific manifests and one checksum file covering both archives.
-- Extended the coordinated release commit marker to bind both ZIPs, both manifests, and the checksum file.
-- Extended deterministic and adversarial release tests to reject mixed audiences, unresolved placeholders, swapped manifests, reordered members, tampered archives, and partial publication.
-- Preserved exact byte reproducibility and fail-closed publication across the complete six-file release output set.
+- Added a consumer-facing Giveaway ZIP containing the guide, starter system, setup documentation, validators, tests, evidence, license, credits, and security guidance.
+- Excluded repository source, CI files, release tooling, and editable visual source from the Giveaway ZIP.
+- Renamed the consumer entry file to `START-HERE.md` inside the Giveaway.
+- Added a deterministic manifest, checksum, coordinated commit marker, and adversarial release verification.
 
 ## 2.1.0 - 2026-07-15
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed while verifying both audience-specific release archives."""
+"""Fail closed while verifying the public giveaway release archive."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ MANIFEST_ENTRY_KEYS = {"bytes", "path", "sha256"}
 COMMIT_KEYS = {"format", "outputs", "package", "version"}
 COMMIT_ENTRY_KEYS = {"bytes", "path", "sha256"}
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
-COMMIT_PACKAGE = "Claude Code Smart Orchestrator audience bundles"
+COMMIT_PACKAGE = "Claude Code Smart Orchestrator public giveaway"
 
 
 def sha256(data: bytes) -> str:
@@ -86,7 +86,7 @@ def validate_manifest_schema(
     if type(manifest["format"]) is not int or manifest["format"] != 1:
         fail("manifest format must be integer 1")
     if manifest["name"] != bundle.display_name:
-        fail("manifest name is not canonical for this audience bundle")
+        fail("manifest name is not canonical for the public giveaway")
     if manifest["version"] != VERSION:
         fail("manifest version does not match the release")
     if manifest["note"] != "MANIFEST.json intentionally does not hash itself.":
@@ -129,7 +129,7 @@ def validate_manifest_schema(
             fail(f"manifest does not match trusted source bytes: {relative!r}")
         observed_paths.append(relative)
     if observed_paths != expected_paths:
-        fail("manifest file order or exact audience inventory is not canonical")
+        fail("manifest file order or public inventory is not canonical")
     return entries
 
 
@@ -237,9 +237,7 @@ def verify_bundle_bytes(bundle: BundleArtifacts, archive_bytes: bytes) -> int:
         if "Claude-Code-Smart-Orchestrator-Kit.pdf" in expected_data:
             if not expected_data["Claude-Code-Smart-Orchestrator-Kit.pdf"].startswith(b"%PDF-"):
                 fail("giveaway guide does not have a PDF header")
-        if "Claude-Code-Smart-Orchestrator-Infographic.png" in expected_data:
-            if not expected_data["Claude-Code-Smart-Orchestrator-Infographic.png"].startswith(b"\x89PNG\r\n\x1a\n"):
-                fail("team infographic does not have a PNG header")
+
     return len(expected_relatives)
 
 
@@ -339,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
     print("RELEASE VERIFICATION PASS")
     for key, (count, archive_hash) in results.items():
         print(f"- {key}: {count} files, sha256 {archive_hash}")
-    print("- two audience-specific archives, exact canonical bytes/order/metadata, strict manifests, coordinated commit marker, secret scan, local tests, and asset headers verified")
+    print("- public giveaway archive, exact canonical bytes/order/metadata, strict manifest, coordinated commit marker, secret scan, local tests, and PDF header verified")
     print("- trust boundary: this verifier compares locally built archives with this trusted checkout; it is not a general untrusted-ZIP sandbox")
     return 0
 

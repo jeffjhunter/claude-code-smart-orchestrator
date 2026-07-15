@@ -13,7 +13,6 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_release import (  # noqa: E402  # pyright: ignore[reportMissingImports]
     COMMIT_PATH,
-    _hydrate_text,
     build_release_artifacts,
     publish_release_payloads,
 )
@@ -35,7 +34,7 @@ class CanonicalReleaseTests(unittest.TestCase):
         for path, data in self.release.outputs:
             (directory / path.name).write_bytes(data)
 
-    def test_both_archives_are_canonical_and_repeatable(self) -> None:
+    def test_public_archive_is_canonical_and_repeatable(self) -> None:
         second = build_release_artifacts()
         for key, bundle in self.release.bundles.items():
             self.assertEqual(bundle.archive, second.bundles[key].archive)
@@ -89,28 +88,24 @@ class CanonicalReleaseTests(unittest.TestCase):
             directory = Path(temporary)
             self.write_release(directory)
             results = verify_release_set(directory, run_local_checks=False)
-            self.assertEqual(set(results), {"giveaway", "team"})
+            self.assertEqual(set(results), {"giveaway"})
 
-    def test_tampered_team_archive_fails_complete_release_verification(self) -> None:
+    def test_tampered_public_archive_fails_complete_release_verification(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             self.write_release(directory)
-            team = self.release.bundles["team"].archive_path.name
-            path = directory / team
+            giveaway = self.release.bundles["giveaway"].archive_path.name
+            path = directory / giveaway
             path.write_bytes(path.read_bytes() + b"tampered")
             with self.assertRaisesRegex(ValueError, "canonical|size|bytes"):
                 verify_release_set(directory, run_local_checks=False)
 
-    def test_swapped_manifests_fail_complete_release_verification(self) -> None:
+    def test_tampered_manifest_fails_complete_release_verification(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             self.write_release(directory)
-            giveaway = self.release.bundles["giveaway"].manifest_path.name
-            team = self.release.bundles["team"].manifest_path.name
-            left = (directory / giveaway).read_bytes()
-            right = (directory / team).read_bytes()
-            (directory / giveaway).write_bytes(right)
-            (directory / team).write_bytes(left)
+            manifest = self.release.bundles["giveaway"].manifest_path.name
+            (directory / manifest).write_bytes(b"{}\n")
             with self.assertRaisesRegex(ValueError, "canonical|manifest|commit"):
                 verify_release_set(directory, run_local_checks=False)
 
@@ -132,17 +127,10 @@ class CanonicalReleaseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "inventory|missing"):
                 verify_release_set(directory, run_local_checks=False)
 
-    def test_unknown_team_placeholder_is_rejected(self) -> None:
-        with self.assertRaisesRegex(RuntimeError, "Unresolved placeholder"):
-            _hydrate_text(b"Download {{UNKNOWN_RELEASE_URL}}")
-
-
 class CoordinatedPublicationTests(unittest.TestCase):
     NAMES = [
         "giveaway.zip",
-        "team.zip",
-        "giveaway.json",
-        "team.json",
+        "manifest.json",
         "SHA256SUMS.txt",
         COMMIT_PATH.name,
     ]
