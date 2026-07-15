@@ -8,9 +8,10 @@ Route Claude Code work by role, model alias, and effort level - then verify
 what actually ran. Version 2.1 adds Fable as an opt-in planning route without
 replacing the proven Opus planner.
 
-Version 2.1.1 separates the release into a lead-ready Giveaway ZIP and a
+Version 2.1.2 separates the release into a lead-ready Giveaway ZIP and a
 copy-ready Team Assets ZIP so the AI Money Group team never has to assemble,
-strip, rename, or guess which files to send.
+strip, rename, or guess which files to send. The builder and verifier also
+reject stale or unexpected files in the release output directory.
 
 ![Claude Code Smart Orchestrator v2.1 routing overview](Claude-Code-Smart-Orchestrator-Infographic.png)
 

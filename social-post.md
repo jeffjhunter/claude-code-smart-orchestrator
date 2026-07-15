@@ -1,6 +1,6 @@
 Claude Code orchestration should be testable, not just a prompt that sounds smart.
 
-Version 2.1.1 of the Claude Code Smart Orchestrator Kit keeps the four proven routes and adds a fifth, opt-in planning option:
+Version 2.1.2 of the Claude Code Smart Orchestrator Kit keeps the four proven routes and adds a fifth, opt-in planning option:
 
 - Architect: Opus with high effort
 - Deep Reasoner: Opus with xhigh effort

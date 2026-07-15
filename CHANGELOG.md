@@ -2,6 +2,17 @@
 
 All notable changes to this kit are documented here.
 
+## 2.1.2 - 2026-07-15
+
+### Release hardening
+
+- Reject unexpected or stale files in `dist/` before publication and during release verification.
+- Prevent an obsolete Full Kit or unrelated internal archive from coexisting unnoticed with the two audience bundles.
+- Exercise rollback at every output boundary, including both ZIPs, both manifests, the checksum, and the final commit marker.
+- Verify rollback from both previously published and initially empty output directories.
+- Add explicit tests for partial release sets, unknown placeholders, stale outputs, and canonical links in every link-bearing team file.
+- Restore explicit ZIP checks for reserved fields, volume fields, and stored-member sizes.
+
 ## 2.1.1 - 2026-07-15
 
 ### Changed

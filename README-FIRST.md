@@ -1,4 +1,4 @@
-# Claude Code Smart Orchestrator Kit v2.1.1
+# Claude Code Smart Orchestrator Kit v2.1.2
 
 An evidence-backed starter for routing Claude Code work by role, model alias, and effort level.
 
