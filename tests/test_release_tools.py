@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from build_release import (  # noqa: E402  # pyright: ignore[reportMissingImports]
     COMMIT_PATH,
+    _hydrate_text,
     build_release_artifacts,
     publish_release_payloads,
 )
@@ -113,59 +114,108 @@ class CanonicalReleaseTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "canonical|manifest|commit"):
                 verify_release_set(directory, run_local_checks=False)
 
-
-class CoordinatedPublicationTests(unittest.TestCase):
-    def test_publish_failure_restores_last_good_set(self) -> None:
+    def test_unexpected_output_file_fails_complete_release_verification(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
-            targets = [
-                directory / "giveaway.zip",
-                directory / "team.zip",
-                directory / "giveaway.json",
-                directory / "team.json",
-                directory / "SHA256SUMS.txt",
-                directory / COMMIT_PATH.name,
-            ]
-            old_payloads = [f"old-{i}".encode() for i in range(len(targets))]
-            for target, data in zip(targets, old_payloads):
-                target.write_bytes(data)
+            self.write_release(directory)
+            (directory / "Claude-Code-Smart-Orchestrator-Full-Kit-v2.1.0.zip").write_bytes(
+                b"stale"
+            )
+            with self.assertRaisesRegex(ValueError, "unexpected release output"):
+                verify_release_set(directory, run_local_checks=False)
 
-            failed = False
+    def test_partial_release_set_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            for path, data in self.release.outputs[:-1]:
+                (directory / path.name).write_bytes(data)
+            with self.assertRaisesRegex(ValueError, "inventory|missing"):
+                verify_release_set(directory, run_local_checks=False)
 
-            def fail_one_replace(source: Path, target: Path) -> None:
-                nonlocal failed
-                if Path(target).name == "team.json" and not failed:
-                    failed = True
-                    raise OSError("injected publication failure")
-                os.replace(source, target)
+    def test_unknown_team_placeholder_is_rejected(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "Unresolved placeholder"):
+            _hydrate_text(b"Download {{UNKNOWN_RELEASE_URL}}")
 
-            with self.assertRaisesRegex(OSError, "injected"):
-                publish_release_payloads(
-                    [
-                        (target, f"new-{i}".encode())
-                        for i, target in enumerate(targets)
-                    ],
-                    replace=fail_one_replace,
+
+class CoordinatedPublicationTests(unittest.TestCase):
+    NAMES = [
+        "giveaway.zip",
+        "team.zip",
+        "giveaway.json",
+        "team.json",
+        "SHA256SUMS.txt",
+        COMMIT_PATH.name,
+    ]
+
+    def test_publish_failure_at_every_output_restores_last_good_set(self) -> None:
+        for failed_name in self.NAMES:
+            with self.subTest(failed_name=failed_name), tempfile.TemporaryDirectory() as temporary:
+                directory = Path(temporary)
+                targets = [directory / name for name in self.NAMES]
+                old_payloads = [f"old-{i}".encode() for i in range(len(targets))]
+                for target, data in zip(targets, old_payloads):
+                    target.write_bytes(data)
+                failed = False
+
+                def fail_one_replace(source: Path, target: Path) -> None:
+                    nonlocal failed
+                    if Path(target).name == failed_name and not failed:
+                        failed = True
+                        raise OSError("injected publication failure")
+                    os.replace(source, target)
+
+                with self.assertRaisesRegex(OSError, "injected"):
+                    publish_release_payloads(
+                        [
+                            (target, f"new-{i}".encode())
+                            for i, target in enumerate(targets)
+                        ],
+                        replace=fail_one_replace,
+                    )
+                self.assertEqual(
+                    [target.read_bytes() for target in targets], old_payloads
                 )
-            self.assertEqual(
-                [target.read_bytes() for target in targets], old_payloads
-            )
-            self.assertEqual(
-                {item.name for item in directory.iterdir()},
-                {target.name for target in targets},
-            )
+                self.assertEqual(
+                    {item.name for item in directory.iterdir()}, set(self.NAMES)
+                )
+
+    def test_publish_failure_with_no_previous_outputs_leaves_directory_empty(self) -> None:
+        for failed_name in self.NAMES:
+            with self.subTest(failed_name=failed_name), tempfile.TemporaryDirectory() as temporary:
+                directory = Path(temporary)
+                targets = [directory / name for name in self.NAMES]
+                failed = False
+
+                def fail_one_replace(source: Path, target: Path) -> None:
+                    nonlocal failed
+                    if Path(target).name == failed_name and not failed:
+                        failed = True
+                        raise OSError("injected publication failure")
+                    os.replace(source, target)
+
+                with self.assertRaisesRegex(OSError, "injected"):
+                    publish_release_payloads(
+                        [(target, target.name.encode()) for target in targets],
+                        replace=fail_one_replace,
+                    )
+                self.assertEqual(list(directory.iterdir()), [])
+
+    def test_publish_rejects_stale_output_before_writing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            targets = [directory / name for name in self.NAMES]
+            stale = directory / "Claude-Code-Smart-Orchestrator-Full-Kit-v2.1.0.zip"
+            stale.write_bytes(b"stale")
+            with self.assertRaisesRegex(RuntimeError, "unexpected release output"):
+                publish_release_payloads(
+                    [(target, target.name.encode()) for target in targets]
+                )
+            self.assertEqual({item.name for item in directory.iterdir()}, {stale.name})
 
     def test_commit_marker_is_published_last(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
-            targets = [
-                directory / "giveaway.zip",
-                directory / "team.zip",
-                directory / "giveaway.json",
-                directory / "team.json",
-                directory / "SHA256SUMS.txt",
-                directory / COMMIT_PATH.name,
-            ]
+            targets = [directory / name for name in self.NAMES]
             publication_order: list[str] = []
 
             def record_replace(source: Path, target: Path) -> None:

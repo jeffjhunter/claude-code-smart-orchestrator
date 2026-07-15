@@ -387,6 +387,17 @@ def _fsync_directory(directory: Path) -> None:
         os.close(descriptor)
 
 
+def _reject_unexpected_outputs(directory: Path, allowed_names: set[str]) -> None:
+    unexpected = sorted(
+        item.name for item in directory.iterdir() if item.name not in allowed_names
+    )
+    if unexpected:
+        raise RuntimeError(
+            "unexpected release output in destination; remove stale files before "
+            "building: " + ", ".join(unexpected)
+        )
+
+
 @contextmanager
 def _release_lock(directory: Path):
     directory.mkdir(parents=True, exist_ok=True)
@@ -433,6 +444,10 @@ def publish_release_payloads(
     rollback_temps: list[Path] = []
 
     with _release_lock(directory):
+        _reject_unexpected_outputs(
+            directory,
+            {path.name for path, _ in payloads} | {LOCK_PATH.name},
+        )
         previous = {
             target: target.read_bytes() if target.is_file() else None
             for target, _ in payloads

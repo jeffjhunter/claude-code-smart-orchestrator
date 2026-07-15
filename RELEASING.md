@@ -10,6 +10,12 @@ python scripts/build_release.py
 python scripts/verify_release.py
 ```
 
+The output directory is an exact inventory. Before the first build after a
+`VERSION` change, remove the previous `dist/` directory. The builder and
+verifier intentionally fail if a stale archive, sidecar, temporary file, or
+other unexpected entry is present. This prevents obsolete Full Kit artifacts
+from being uploaded alongside the audience-specific archives.
+
 `scripts/build_release.py` packages two exact audience allowlists, normalizes
 text to UTF-8 with LF endings, scans packaged text for secret-like material,
 hydrates copy-ready team links, snapshots source bytes once, and writes

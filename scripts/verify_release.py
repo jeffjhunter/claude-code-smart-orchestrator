@@ -209,9 +209,15 @@ def verify_bundle_bytes(bundle: BundleArtifacts, archive_bytes: bytes) -> int:
                 fail(f"archive metadata is not canonical: {info.filename!r}")
             if info.flag_bits != 0 or info.internal_attr != 0:
                 fail(f"archive flags are not canonical: {info.filename!r}")
+            if info.reserved != 0 or info.volume != 0:
+                fail(
+                    f"archive reserved or volume fields are not canonical: {info.filename!r}"
+                )
             if info.create_version != 20 or info.extract_version != 20:
                 fail(f"archive ZIP version fields are not canonical: {info.filename!r}")
             data = archive.read(info)
+            if info.file_size != len(data) or info.compress_size != len(data):
+                fail(f"archive stored-member sizes are not canonical: {info.filename!r}")
             if data != expected_data[relative]:
                 fail(f"archive member bytes do not match source: {relative!r}")
             if relative.endswith(".md") and b"{{" in data:
@@ -263,6 +269,19 @@ def verify_release_set(
     trusted = build_release_artifacts()
     directory = directory.resolve()
     expected_outputs = trusted.outputs
+    if not directory.is_dir():
+        fail(f"release output directory is missing: {directory}")
+    expected_names = [path.name for path, _ in expected_outputs]
+    observed_names = sorted(item.name for item in directory.iterdir())
+    unexpected = sorted(set(observed_names) - set(expected_names))
+    missing = sorted(set(expected_names) - set(observed_names))
+    if unexpected or missing:
+        details: list[str] = []
+        if unexpected:
+            details.append("unexpected release output: " + ", ".join(unexpected))
+        if missing:
+            details.append("missing release output: " + ", ".join(missing))
+        fail("release output inventory mismatch; " + "; ".join(details))
     actual: dict[str, bytes] = {}
     for path, expected_data in expected_outputs:
         candidate = directory / path.name

@@ -83,6 +83,8 @@ class SplitReleaseTests(unittest.TestCase):
         self.assertNotIn("{{", text)
         self.assertIn(GIVEAWAY_URL, text)
         self.assertIn("ORCHESTRATE", text)
+        for member in ("START-HERE.md", "DELIVERY-COPY.md", "ASSET-LINKS.md"):
+            self.assertIn(GIVEAWAY_URL, members[member].decode("utf-8"), member)
 
     def test_manifests_are_audience_specific(self) -> None:
         giveaway_manifest = json.loads(self.giveaway.manifest)
