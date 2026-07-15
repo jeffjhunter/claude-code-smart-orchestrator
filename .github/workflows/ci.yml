@@ -83,8 +83,10 @@ jobs:
       - name: Prove repeatable archive hash
         shell: bash
         run: |
-          sha256sum dist/* > first-output-hashes.txt
+          first="$RUNNER_TEMP/first-output-hashes.txt"
+          second="$RUNNER_TEMP/second-output-hashes.txt"
+          sha256sum dist/* > "$first"
           python scripts/build_release.py
-          sha256sum dist/* > second-output-hashes.txt
-          diff -u first-output-hashes.txt second-output-hashes.txt
+          sha256sum dist/* > "$second"
+          diff -u "$first" "$second"
           python scripts/verify_release.py
