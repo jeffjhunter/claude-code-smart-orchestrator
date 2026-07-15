@@ -1,4 +1,4 @@
-# Claude Code Smart Orchestrator Kit v2.1.0
+# Claude Code Smart Orchestrator Kit v2.1.1
 
 An evidence-backed starter for routing Claude Code work by role, model alias, and effort level.
 
@@ -22,7 +22,9 @@ user has not requested Fable. Use `@agent-fable-planner` only after an explicit
 Fable request and after confirming that the `fable` alias is available. If it
 is not, fall back to `@agent-architect` or `@agent-deep-reasoner`.
 
-## Bundle contents
+## Giveaway contents
+
+This is the consumer resource. It is already separated from team launch assets and repository-maintenance files.
 
 - `starter/.claude/agents/`: five project subagent definitions, including the opt-in Fable planner
 - `starter/CLAUDE.md`: parent routing and completion guidance
@@ -33,13 +35,12 @@ is not, fall back to `@agent-architect` or `@agent-deep-reasoner`.
 - `starter/scripts/validate_kit.py`: static validation for the starter
 - `starter/scripts/verify_direct_model_trace.py`: fail-closed checks for a no-tool direct-model preflight
 - `starter/scripts/verify_runtime_trace.py`: fail-closed checks for one observed Agent/model trace
-- `LIVE-TEST-RESULTS.md`: dated v2 route probes, accepted Fable evidence, the QA defect found, and evidence limitations
-- `CREDITS.md`: attribution and project provenance
+- `starter/tests/`: adversarial tests for the validator and trace verifiers
+- `LIVE-TEST-RESULTS.md`: dated route probes, accepted Fable evidence, the QA defect found, and evidence limitations
+- `CREDITS.md`, `LICENSE`, and `SECURITY.md`: provenance, terms, and safety guidance
 - `Claude-Code-Smart-Orchestrator-Kit.pdf`: companion visual guide
-- `Claude-Code-Smart-Orchestrator-Infographic.png`: companion overview graphic
-- `social-post.md`: launch copy
 
-The executable starter files and current Markdown documentation are authoritative for this release. Companion visual assets are explanatory and are not runtime evidence.
+The executable starter files and current Markdown documentation are authoritative for this release. The PDF is explanatory and is not runtime evidence.
 
 ## Requirements
 

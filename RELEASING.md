@@ -10,34 +10,50 @@ python scripts/build_release.py
 python scripts/verify_release.py
 ```
 
-`scripts/build_release.py` packages an exact allowlist, normalizes text to
-UTF-8 with LF endings, scans packaged text for secret-like material, snapshots
-source bytes once, and writes deterministic stored ZIP members. It rejects
+`scripts/build_release.py` packages two exact audience allowlists, normalizes
+text to UTF-8 with LF endings, scans packaged text for secret-like material,
+hydrates copy-ready team links, snapshots source bytes once, and writes
+deterministic stored ZIP members. It rejects
 unexpected files, sensitive extensions, backups, symbolic links, missing
 required files, and invalid text. Each file is staged and flushed before
 publication. A build lock prevents concurrent writers, ordinary publication
 errors roll back to the last byte-for-byte output set, and a commit marker is
 replaced last so interrupted multi-file publication fails closed. Outputs are:
 
-- `dist/Claude-Code-Smart-Orchestrator-Full-Kit-v<VERSION>.zip`
-- `dist/MANIFEST.json`, with each packaged file's size and SHA-256
-- `dist/SHA256SUMS.txt`, with the archive SHA-256
-- `dist/RELEASE-COMMIT.json`, binding all three outputs above by name, size,
-  order, and SHA-256
+- `dist/Claude-Code-Smart-Orchestrator-Giveaway-v<VERSION>.zip`
+- `dist/Claude-Code-Smart-Orchestrator-Team-Assets-v<VERSION>.zip`
+- `dist/MANIFEST-GIVEAWAY.json`, with each Giveaway file's size and SHA-256
+- `dist/MANIFEST-TEAM-ASSETS.json`, with each Team Assets file's size and SHA-256
+- `dist/SHA256SUMS.txt`, with both archive hashes
+- `dist/RELEASE-COMMIT.json`, binding both archives, both manifests, and the
+  checksum by name, size, order, and SHA-256
 
-An extracted release contains its embedded `MANIFEST.json` at the package
-root. The builder excludes that generated file only when its bytes exactly
-match the canonical manifest for the current package; a stale or injected root
-manifest fails the build.
+## GitHub release assets
 
-`scripts/verify_release.py` reconstructs the one canonical archive from the
-trusted checkout and requires an exact byte match. It also checks strict
+Upload only these two files to the public GitHub release:
+
+- `Claude-Code-Smart-Orchestrator-Giveaway-v<VERSION>.zip`
+- `Claude-Code-Smart-Orchestrator-Team-Assets-v<VERSION>.zip`
+
+The manifests, checksum, and commit marker are build and verification sidecars.
+Do not upload them as separate release assets. Put the two archive hashes in the
+release notes instead. This keeps the public release page limited to the two
+audiences the team actually uses.
+
+Each extracted archive contains its own embedded `MANIFEST.json`. The Giveaway
+archive must contain only consumer resources. The Team Assets archive must
+contain only launch and delivery assets plus generated links. Tests fail if
+the audiences are mixed or a placeholder survives packaging.
+
+`scripts/verify_release.py` reconstructs both canonical archives from the
+trusted checkout and requires exact byte matches. It also checks strict
 manifest and commit-marker schemas, exact member order, modes, comments, extra
 fields and other ZIP metadata, the exact checksum bytes, asset headers, and
 secret scanning. It runs both unit-test suites from this trusted checkout.
 
-Build twice without source changes and confirm that `SHA256SUMS.txt` is
-unchanged. Inspect the PDF and PNG before publishing. Runtime routing tests are
+Build twice without source changes and confirm that every file in `dist/` is
+unchanged. Inspect the PDF and PNG before publishing. Extract both archives and
+confirm that only the Giveaway ZIP is suitable for leads. Runtime routing tests are
 separate from this static release process; follow `starter/TEST-PROMPTS.md` and
 retain only redacted evidence.
 

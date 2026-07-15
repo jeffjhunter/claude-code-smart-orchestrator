@@ -2,6 +2,9 @@ dist/
 output/
 tmp/
 __pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 *.py[cod]
 .DS_Store
 Thumbs.db

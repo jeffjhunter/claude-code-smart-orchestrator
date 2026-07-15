@@ -8,7 +8,20 @@ Route Claude Code work by role, model alias, and effort level - then verify
 what actually ran. Version 2.1 adds Fable as an opt-in planning route without
 replacing the proven Opus planner.
 
+Version 2.1.1 separates the release into a lead-ready Giveaway ZIP and a
+copy-ready Team Assets ZIP so the AI Money Group team never has to assemble,
+strip, rename, or guess which files to send.
+
 ![Claude Code Smart Orchestrator v2.1 routing overview](Claude-Code-Smart-Orchestrator-Infographic.png)
+
+## Two clean release downloads
+
+Every release is built into two audience-specific archives so nobody has to sort or remove files manually:
+
+- **Giveaway:** the PDF guide, five-agent starter system, setup instructions, validators, adversarial tests, evidence, license, credits, and safety documentation. This is the only ZIP sent to leads.
+- **Team Assets:** the social post, infographic, comment replies, delivery copy, launch checklist, and generated direct download links. This ZIP is for the AI Money Group team only.
+
+Repository source, CI configuration, visual source files, and release tooling are intentionally excluded from both audience archives.
 
 ## Four proven lanes, plus an opt-in Fable planner
 
@@ -117,7 +130,9 @@ delete or securely retain them after review.
 - Separate direct-model and delegated-Agent trace verifiers with UTF-8 and UTF-16 support
 - Safe Windows setup, upgrade, merge, rollback, and uninstall guidance
 - A 14-page PDF guide and editable HTML/SVG visual sources
-- Allowlisted deterministic ZIP builder, manifest, checksum, and trusted-source release verifier
+- Separate deterministic Giveaway and Team Assets ZIPs with audience-specific manifests
+- Generated copy-ready delivery links so the team never assembles or strips files manually
+- Allowlisted deterministic release builder, checksums, coordinated commit marker, and trusted-source verifier
 
 Start with [README-FIRST.md](README-FIRST.md). The complete visual guide is
 [Claude-Code-Smart-Orchestrator-Kit.pdf](Claude-Code-Smart-Orchestrator-Kit.pdf).

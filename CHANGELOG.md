@@ -2,6 +2,24 @@
 
 All notable changes to this kit are documented here.
 
+## 2.1.1 - 2026-07-15
+
+### Changed
+
+- Split every release into a consumer-facing Giveaway ZIP and an internal Team Assets ZIP.
+- Removed repository source, CI files, release tooling, editable visual source, and promotional copy from the Giveaway ZIP.
+- Removed the runnable starter system and PDF payload from the Team Assets ZIP.
+- Added copy-ready comment replies, delivery copy, a launch checklist, and generated direct download links for the team.
+- Changed the social post to use the `ORCHESTRATE` comment CTA instead of sending readers to the repository.
+- Renamed the consumer entry file to `START-HERE.md` inside the Giveaway ZIP.
+
+### Release automation
+
+- Added audience-specific manifests and one checksum file covering both archives.
+- Extended the coordinated release commit marker to bind both ZIPs, both manifests, and the checksum file.
+- Extended deterministic and adversarial release tests to reject mixed audiences, unresolved placeholders, swapped manifests, reordered members, tampered archives, and partial publication.
+- Preserved exact byte reproducibility and fail-closed publication across the complete six-file release output set.
+
 ## 2.1.0 - 2026-07-15
 
 ### Added
