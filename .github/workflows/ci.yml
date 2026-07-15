@@ -75,10 +75,10 @@ jobs:
       - name: Install development dependencies
         run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
 
-      - name: Build deterministic audience archives
+      - name: Build deterministic public archive
         run: python scripts/build_release.py
 
-      - name: Verify audience archives against trusted checkout
+      - name: Verify public archive against trusted checkout
         run: python scripts/verify_release.py
 
       - name: Prove repeatable release hashes

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build deterministic, audience-specific Smart Orchestrator release archives."""
+"""Build the deterministic public Smart Orchestrator giveaway archive."""
 
 from __future__ import annotations
 
@@ -23,21 +23,13 @@ VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", VERSION):
     raise RuntimeError("VERSION must be a filename-safe semantic version")
 
-REPOSITORY = "jeffjhunter/claude-code-smart-orchestrator"
-RELEASE_BASE_URL = f"https://github.com/{REPOSITORY}/releases/download/v{VERSION}"
-RELEASE_PAGE_URL = f"https://github.com/{REPOSITORY}/releases/tag/v{VERSION}"
 GIVEAWAY_PACKAGE_NAME = f"Claude-Code-Smart-Orchestrator-Giveaway-v{VERSION}"
-TEAM_PACKAGE_NAME = f"Claude-Code-Smart-Orchestrator-Team-Assets-v{VERSION}"
 DIST = ROOT / "dist"
 GIVEAWAY_ARCHIVE = DIST / f"{GIVEAWAY_PACKAGE_NAME}.zip"
-TEAM_ARCHIVE = DIST / f"{TEAM_PACKAGE_NAME}.zip"
-GIVEAWAY_MANIFEST_PATH = DIST / "MANIFEST-GIVEAWAY.json"
-TEAM_MANIFEST_PATH = DIST / "MANIFEST-TEAM-ASSETS.json"
+GIVEAWAY_MANIFEST_PATH = DIST / "MANIFEST.json"
 CHECKSUM_PATH = DIST / "SHA256SUMS.txt"
 COMMIT_PATH = DIST / "RELEASE-COMMIT.json"
 LOCK_PATH = DIST / ".build-release.lock"
-GIVEAWAY_URL = f"{RELEASE_BASE_URL}/{GIVEAWAY_ARCHIVE.name}"
-TEAM_URL = f"{RELEASE_BASE_URL}/{TEAM_ARCHIVE.name}"
 
 sys.path.insert(0, str(ROOT / "starter" / "scripts"))
 from validate_kit import find_secret_like_content  # noqa: E402  # pyright: ignore[reportMissingImports]
@@ -65,7 +57,6 @@ SENSITIVE_SUFFIXES = {
 }
 BINARY_SOURCE_PATHS = {
     "Claude-Code-Smart-Orchestrator-Kit.pdf",
-    "Claude-Code-Smart-Orchestrator-Infographic.png",
 }
 
 GIVEAWAY_SOURCE_MAP = {
@@ -93,14 +84,6 @@ GIVEAWAY_SOURCE_MAP = {
     "starter/tests/test_verify_direct_model_trace.py": "starter/tests/test_verify_direct_model_trace.py",
     "starter/tests/test_verify_runtime_trace.py": "starter/tests/test_verify_runtime_trace.py",
 }
-TEAM_SOURCE_MAP = {
-    "START-HERE.md": "team-assets/START-HERE.md",
-    "SOCIAL-POST.md": "social-post.md",
-    "COMMENT-REPLIES.md": "team-assets/COMMENT-REPLIES.md",
-    "DELIVERY-COPY.md": "team-assets/DELIVERY-COPY.md",
-    "LAUNCH-CHECKLIST.md": "team-assets/LAUNCH-CHECKLIST.md",
-    "Claude-Code-Smart-Orchestrator-Infographic.png": "Claude-Code-Smart-Orchestrator-Infographic.png",
-}
 MAINTAINER_PATHS = {
     ".gitattributes",
     ".gitignore",
@@ -120,12 +103,12 @@ MAINTAINER_PATHS = {
     "scripts/verify_release.py",
     "source/guide.html",
     "source/infographic.svg",
+    "Claude-Code-Smart-Orchestrator-Infographic.png",
     "tests/test_release_tools.py",
-    "tests/test_split_release.py",
+    "tests/test_public_release.py",
 }
 REPOSITORY_ALLOWED_PATHS = (
     set(GIVEAWAY_SOURCE_MAP.values())
-    | set(TEAM_SOURCE_MAP.values())
     | MAINTAINER_PATHS
 )
 
@@ -208,41 +191,11 @@ def validate_repository_inventory() -> None:
         raise RuntimeError("Repository is missing required files: " + ", ".join(missing))
 
 
-def _hydrate_text(data: bytes) -> bytes:
-    text = data.decode("utf-8")
-    replacements = {
-        "{{GIVEAWAY_URL}}": GIVEAWAY_URL,
-        "{{TEAM_URL}}": TEAM_URL,
-        "{{RELEASE_PAGE_URL}}": RELEASE_PAGE_URL,
-        "{{VERSION}}": VERSION,
-    }
-    for placeholder, value in replacements.items():
-        text = text.replace(placeholder, value)
-    if "{{" in text or "}}" in text:
-        raise RuntimeError("Unresolved placeholder in team asset")
-    return text.encode("utf-8")
-
-
-def _snapshot_map(mapping: dict[str, str], *, hydrate: bool = False) -> tuple[Snapshot, ...]:
-    snapshots: list[Snapshot] = []
-    for output_path, source_path in sorted(mapping.items()):
-        data = _safe_source_bytes(ROOT / source_path)
-        if hydrate and source_path not in BINARY_SOURCE_PATHS:
-            data = _hydrate_text(data)
-        snapshots.append(Snapshot(output_path, data))
-    return tuple(snapshots)
-
-
-def _asset_links() -> bytes:
-    return (
-        "# Asset Links\n\n"
-        "## Give this resource to leads\n\n"
-        f"Direct giveaway download:\n{GIVEAWAY_URL}\n\n"
-        "## Team reference\n\n"
-        f"Release page:\n{RELEASE_PAGE_URL}\n\n"
-        f"Team Assets download:\n{TEAM_URL}\n\n"
-        "Send only the giveaway download to leads. Do not send the Team Assets ZIP.\n"
-    ).encode("utf-8")
+def _snapshot_map(mapping: dict[str, str]) -> tuple[Snapshot, ...]:
+    return tuple(
+        Snapshot(output_path, _safe_source_bytes(ROOT / source_path))
+        for output_path, source_path in sorted(mapping.items())
+    )
 
 
 def make_manifest(display_name: str, snapshots: tuple[Snapshot, ...]) -> bytes:
@@ -290,7 +243,7 @@ def make_checksum(archives: tuple[tuple[Path, bytes], ...]) -> bytes:
 def make_commit_marker(outputs: tuple[tuple[Path, bytes], ...]) -> bytes:
     marker = {
         "format": 1,
-        "package": "Claude Code Smart Orchestrator audience bundles",
+        "package": "Claude Code Smart Orchestrator public giveaway",
         "version": VERSION,
         "outputs": [
             {"path": path.name, "bytes": len(data), "sha256": digest(data)}
@@ -333,32 +286,17 @@ def build_release_artifacts() -> ReleaseArtifacts:
         manifest_path=GIVEAWAY_MANIFEST_PATH,
         snapshots=_snapshot_map(GIVEAWAY_SOURCE_MAP),
     )
-    team_snapshots = list(_snapshot_map(TEAM_SOURCE_MAP, hydrate=True))
-    team_snapshots.append(Snapshot("ASSET-LINKS.md", _asset_links()))
-    team_snapshots.sort(key=lambda item: item.path)
-    team = _build_bundle(
-        key="team",
-        package_name=TEAM_PACKAGE_NAME,
-        display_name="Claude Code Smart Orchestrator Team Assets",
-        archive_path=TEAM_ARCHIVE,
-        manifest_path=TEAM_MANIFEST_PATH,
-        snapshots=tuple(team_snapshots),
-    )
-    archive_outputs = (
-        (giveaway.archive_path, giveaway.archive),
-        (team.archive_path, team.archive),
-    )
+    archive_outputs = ((giveaway.archive_path, giveaway.archive),)
     checksum = make_checksum(archive_outputs)
     committed_outputs = (
         *archive_outputs,
         (giveaway.manifest_path, giveaway.manifest),
-        (team.manifest_path, team.manifest),
         (CHECKSUM_PATH, checksum),
     )
     commit = make_commit_marker(committed_outputs)
     outputs = (*committed_outputs, (COMMIT_PATH, commit))
     return ReleaseArtifacts(
-        bundles={"giveaway": giveaway, "team": team},
+        bundles={"giveaway": giveaway},
         checksum=checksum,
         commit=commit,
         outputs=outputs,
@@ -498,11 +436,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.parse_args(argv)
     release = build_release_artifacts()
     publish_release_payloads(release.outputs)
-    for key in ("giveaway", "team"):
-        bundle = release.bundles[key]
-        print(f"Built {key}: {bundle.archive_path}")
-        print(f"SHA256 {key}: {digest(bundle.archive)}")
-        print(f"Files {key}: {len(bundle.snapshots) + 1} (including MANIFEST.json)")
+    bundle = release.bundles["giveaway"]
+    print(f"Built public giveaway: {bundle.archive_path}")
+    print(f"SHA256: {digest(bundle.archive)}")
+    print(f"Files: {len(bundle.snapshots) + 1} (including MANIFEST.json)")
     print(f"Commit marker: {COMMIT_PATH}")
     return 0
 
