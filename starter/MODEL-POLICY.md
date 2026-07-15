@@ -4,6 +4,7 @@
 
 | Agent | Model alias | Effort | Rationale |
 |---|---:|---:|---|
+| `fable-planner` | `fable` | `xhigh` | An explicit user opt-in can request a second planning route for goals spanning phases, scenarios, and decision gates. |
 | `architect` | `opus` | `high` | Plans and interface decisions benefit from stronger reasoning without defaulting to the maximum effort tier. |
 | `deep-reasoner` | `opus` | `xhigh` | Reserved for ambiguous or high-consequence problems that justify the highest configured effort. |
 | `fast-worker` | `haiku` | `low` | Bounded implementation should favor speed after requirements are clear. |
@@ -11,7 +12,9 @@
 
 These values are routing policy, not observed runtime facts.
 
-Architect and Deep Reasoner use `permissionMode: plan` because their profiles have no editing or shell tools. Fast Worker and QA Reviewer use `permissionMode: default`. QA needs the default mode so a parent-approved verification command can run; its prompt still forbids source edits, variants, and extra shell commands, but that behavioral contract is not a sandbox.
+Fable Planner, Architect, and Deep Reasoner use `permissionMode: plan` because their profiles have no editing or shell tools. Fast Worker and QA Reviewer use `permissionMode: default`. QA needs the default mode so a parent-approved verification command can run; its prompt still forbids source edits, variants, and extra shell commands, but that behavioral contract is not a sandbox.
+
+Fable Planner is additive and explicit opt-in only. Use it when the user requests Fable by name or directly invokes `@agent-fable-planner`; a broad or long-horizon task alone continues to route to Architect. Keep Architect on Opus for concrete repository architecture, interfaces, boundaries, and implementation order. A Fable roadmap can precede an Architect pass after the user selects a direction, but neither route is required for every task.
 
 ## Why runtime evidence is required
 
@@ -28,7 +31,7 @@ Before relying on this policy:
 
 1. Use Claude Code 2.1.210 or newer as the recommended baseline.
 2. Check the current official documentation for supported model aliases, effort levels, subagent configuration, tools, hooks, and permission precedence.
-3. Invoke each agent directly with its `@agent-*` mention.
+3. Invoke each agent directly with its `@agent-*` mention, including a separate Fable proof if that alias is available to the account.
 4. Check the two override variables above without exposing their values.
 5. Confirm the observed subagent and model in the task UI or CLI stream JSON.
 6. Record effective effort separately when the current UI exposes it.
@@ -38,7 +41,7 @@ Optional `SubagentStart` and `SubagentStop` hooks can record lifecycle events. T
 
 ## Automatic routing is guidance
 
-`CLAUDE.md` describes when the parent conversation should delegate. It is not deterministic enforcement. Automatic-routing tests may produce a different agent or no delegation. Use direct mentions when agent invocation itself is an acceptance criterion.
+`CLAUDE.md` describes when the parent conversation should delegate. It is not deterministic enforcement. Automatic-routing tests may produce a different agent or no delegation. Use direct mentions when agent invocation itself is an acceptance criterion. If the `fable` alias is unavailable or overridden, record that result and fall back to `architect` for a concrete repository plan; do not relabel an Opus trace as Fable evidence.
 
 ## Measurement
 

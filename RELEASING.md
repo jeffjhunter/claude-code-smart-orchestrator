@@ -41,6 +41,14 @@ unchanged. Inspect the PDF and PNG before publishing. Runtime routing tests are
 separate from this static release process; follow `starter/TEST-PROMPTS.md` and
 retain only redacted evidence.
 
+For the optional Fable route, record direct model availability and delegated
+subagent routing as two separate checks. A successful `--model fable`
+preflight must not be described as a successful `@agent-fable-planner` run.
+Publish a delegated-route claim only after a complete, attributable Agent
+lifecycle reports the expected Fable model family and the task outcome passes
+its acceptance checks. If that evidence is missing, label the route opt-in and
+retain the documented Opus fallback.
+
 For a public GitHub repository, enable private vulnerability reporting under
 the repository security settings before announcing the release. Confirm that
 the absolute repository link in `SECURITY.md` opens its private report form.

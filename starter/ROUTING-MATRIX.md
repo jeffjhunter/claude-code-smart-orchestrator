@@ -2,6 +2,7 @@
 
 | Work type | Primary route | Configured target | Next route | Verification |
 |---|---|---|---|---|
+| User explicitly requests Fable for a long-horizon or scenario roadmap | `fable-planner` | Fable, xhigh | `architect` after a direction or phase is selected | Parent synthesis and direct trace evidence |
 | Small, obvious edit | `fast-worker` | Haiku, low | none | Parent or `qa-reviewer` |
 | Multi-file feature | `architect` | Opus, high | `fast-worker` | `qa-reviewer` |
 | Difficult bug or unclear failure | `deep-reasoner` | Opus, xhigh | `fast-worker` | `qa-reviewer` |
@@ -14,6 +15,6 @@
 
 ## Route by consequence
 
-Use high or xhigh reasoning when a wrong decision would be expensive, dangerous, or difficult to reverse. Use the worker when the assignment is already bounded. Keep orchestration in the parent conversation so one place owns scope and sequencing.
+Use Fable Planner only when the user explicitly requests Fable by name or invokes `@agent-fable-planner`. A strategic or long-horizon task without that opt-in routes to Architect. Use Architect for concrete repository boundaries, interfaces, and implementation order; Fable is an option, not a replacement for the working Opus route. Use high or xhigh reasoning when a wrong decision would be expensive, dangerous, or difficult to reverse. Use the worker when the assignment is already bounded. Keep orchestration in the parent conversation so one place owns scope and sequencing.
 
 The configured target is not runtime proof. Aliases may be overridden or unavailable, and `CLAUDE.md` cannot force automatic routing. Use a direct `@agent-*` mention for deterministic invocation tests, then confirm the observed agent and model in the Claude task UI or stream JSON output. See `MODEL-POLICY.md`.

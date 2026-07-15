@@ -49,6 +49,7 @@ jobs:
         run: >-
           python -m py_compile
           starter/scripts/validate_kit.py
+          starter/scripts/verify_direct_model_trace.py
           starter/scripts/verify_runtime_trace.py
           scripts/build_release.py
           scripts/verify_release.py

@@ -2,9 +2,43 @@
 
 Run these in a disposable repository or branch. Record the task UI or stream JSON evidence and the observed model for every direct invocation. A configured alias is not runtime proof.
 
+## Fable availability preflight
+
+Before invoking the optional Fable agent, run this direct-model probe from a
+disposable project and keep its trace outside the repository:
+
+```powershell
+$preflight = Join-Path $env:TEMP "ccso-fable-preflight.jsonl"
+claude -p "Return exactly FABLE_PREFLIGHT_OK. Do not use tools." `
+  --model fable `
+  --output-format stream-json `
+  --verbose `
+  --no-session-persistence |
+  Set-Content -LiteralPath $preflight -Encoding utf8
+```
+
+Then switch to the kit root and run:
+
+```powershell
+python -I starter/scripts/verify_direct_model_trace.py $preflight --expected-model fable --expected-result FABLE_PREFLIGHT_OK
+```
+
+The direct verifier requires Fable-family assistant `message.model` metadata,
+no tool or Agent lifecycle, and the exact successful sentinel. Do not use the
+Agent-only `verify_runtime_trace.py` for this preflight. Delete or securely
+retain the trace after review; never commit it.
+
 ## Deterministic direct-invocation tests
 
 Run each prompt separately in the Claude Code UI.
+
+### Fable Planner
+
+```text
+@agent-fable-planner Inspect this repository and produce a read-only, long-horizon roadmap for evolving the starter into a mature multi-environment routing system. Separate facts from assumptions; compare viable scenarios; include phases, dependencies, decision gates, leading indicators, fallback paths, and phase-level success criteria. End with the first bounded handoff. Do not edit files, run commands, invent owners, or invent deadlines.
+```
+
+Expected configured target: `fable` with `xhigh` effort. If the alias is unavailable or overridden, record that outcome; an Opus result is not Fable proof.
 
 ### Architect
 
@@ -40,18 +74,29 @@ Expected configured target: `sonnet` with `high` effort. Remember that shell-bas
 
 ## Explicit end-to-end sequence
 
-Invoke the four prompts above as separate tasks and pass bounded outputs forward:
+Run the five prompts above as separate routing proofs. For a real end-to-end task, select the applicable planning route and pass bounded outputs forward:
 
-1. `@agent-architect` defines the plan and acceptance criteria.
-2. `@agent-deep-reasoner` is used only if a difficult uncertainty remains.
-3. `@agent-fast-worker` receives one bounded implementation assignment.
-4. `@agent-qa-reviewer` independently verifies the final result.
+1. `@agent-fable-planner` is optional and runs only when the user explicitly requests Fable.
+2. `@agent-architect` translates the selected direction or next phase into concrete repository boundaries, implementation order, and acceptance criteria.
+3. `@agent-deep-reasoner` is used only if a difficult uncertainty remains.
+4. `@agent-fast-worker` receives one bounded implementation assignment.
+5. `@agent-qa-reviewer` independently verifies the final result.
+
+Do not invoke both planning routes by default. When explicitly requested, Fable Planner defines the strategic path; Architect defines concrete repository design. A Fable-to-Architect handoff is useful only when both layers are actually needed.
 
 Do not infer a successful route from the final answer alone. Save lifecycle and model evidence for every invoked task.
 
 ## Probabilistic automatic-routing tests
 
 These prompts intentionally omit an `@agent-*` mention. They test whether the parent conversation follows the guidance in `CLAUDE.md`; they do not force delegation.
+
+### Automatic broad-planning fallback
+
+```text
+Inspect this repository and build a multi-phase roadmap for evolving it over several release cycles. Compare scenarios, identify dependencies and decision gates, define leading indicators and fallback paths, and stay read-only. End with the first bounded handoff.
+```
+
+Expected policy route: `architect`. Fable Planner must not be selected without an explicit request for Fable or a direct `@agent-fable-planner` invocation.
 
 ### Automatic architecture selection
 

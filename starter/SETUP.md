@@ -57,6 +57,7 @@ For a new project, copy these items from `starter/` into the project root:
 CLAUDE.md
 MODEL-POLICY.md
 ROUTING-MATRIX.md
+.claude/agents/fable-planner.md
 .claude/agents/architect.md
 .claude/agents/deep-reasoner.md
 .claude/agents/fast-worker.md
@@ -93,11 +94,11 @@ From the target project root:
 claude
 ```
 
-Restart Claude Code after adding `.claude/agents/` if the agents are not discovered in the current session. Ask Claude to list the project agents, then compare the list with the four installed files.
+Restart Claude Code after adding `.claude/agents/` if the agents are not discovered in the current session. Ask Claude to list the project agents, then compare the list with the five installed files.
 
 ## 5. Prove direct invocation and runtime routing
 
-Run each direct-mention prompt in `TEST-PROMPTS.md` separately. For example:
+Run each direct-mention prompt in `TEST-PROMPTS.md` separately. The Fable proof is additive: it confirms the optional long-horizon route without changing the Opus Architect route. For example:
 
 ```text
 @agent-architect Inspect this repository and return a read-only architecture summary. Do not edit files.
@@ -114,6 +115,32 @@ Before a proof run, record only whether the two highest-priority override variab
 ```
 
 If policy permits, start a clean process with both variables unset. Otherwise label the override in the test record.
+
+For the optional Fable route, first prove direct model availability without
+invoking any agent. Save the trace outside the repository:
+
+```powershell
+$preflight = Join-Path $env:TEMP "ccso-fable-preflight.jsonl"
+claude -p "Return exactly FABLE_PREFLIGHT_OK. Do not use tools." `
+  --model fable `
+  --output-format stream-json `
+  --verbose `
+  --no-session-persistence |
+  Set-Content -LiteralPath $preflight -Encoding utf8
+```
+
+From the kit root, verify that the direct assistant's `message.model` resolves
+to the Fable family, no tool or Agent lifecycle appears, and the final result
+matches the requested sentinel:
+
+```powershell
+python -I starter/scripts/verify_direct_model_trace.py $preflight --expected-model fable --expected-result FABLE_PREFLIGHT_OK
+```
+
+This is a direct-model trace, not an Agent trace. Do not run
+`verify_runtime_trace.py` on it; that verifier correctly requires a delegated
+Agent lifecycle. A passing preflight proves availability for only that account,
+policy, CLI version, and moment.
 
 For CLI evidence, run a safe read-only prompt and retain the JSON Lines output outside the repository:
 
@@ -134,6 +161,15 @@ linked model family, and final result structure:
 ```powershell
 python -I starter/scripts/verify_runtime_trace.py $trace --expected-agent architect --expected-model opus
 ```
+
+After the direct preflight passes, capture a separate delegated Fable trace
+using the `@agent-fable-planner` prompt in `TEST-PROMPTS.md` and verify it with:
+
+```powershell
+python -I starter/scripts/verify_runtime_trace.py $trace --expected-agent fable-planner --expected-model fable
+```
+
+If Fable is unavailable to the current account, organization, provider, or region, record that result as an unavailable route. Use Architect as the documented fallback for a concrete repository plan, but do not treat an Opus trace as proof that Fable ran.
 
 An `OBSERVED TRACE PASS` is routing evidence, not proof that the task's
 acceptance criteria passed and not cryptographic proof of remote execution.
@@ -157,12 +193,12 @@ Claude Code also supports optional `SubagentStart` and `SubagentStop` hooks. Thi
 2. Back up the project's current `CLAUDE.md`, `.claude/`, and policy documents.
 3. Compare and merge changes instead of replacing the directory.
 4. Reapply intentional local model, tool, and permission policy changes.
-5. Run the validator and all four direct-mention proof tests again.
+5. Run the validator and all five direct-mention proof tests again.
 6. Record fresh runtime evidence because model availability and resolution can change.
 
 ## Uninstall
 
-1. Remove only the four kit-owned files from `.claude/agents/`.
+1. Remove only the five kit-owned files from `.claude/agents/`.
 2. Remove only the Smart Orchestrator sections merged into `CLAUDE.md`.
 3. Remove `MODEL-POLICY.md` and `ROUTING-MATRIX.md` only if no project content depends on them.
 4. Restore your backup if that is safer than a manual reversal.

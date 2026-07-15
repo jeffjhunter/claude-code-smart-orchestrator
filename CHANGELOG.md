@@ -2,6 +2,29 @@
 
 All notable changes to this kit are documented here.
 
+## 2.1.0 - 2026-07-15
+
+### Added
+
+- An opt-in long-horizon `fable-planner` project agent configured for the `fable` alias at `xhigh` effort in plan mode.
+- Explicit `@agent-fable-planner` preflight and delegated-proof guidance.
+- A strict no-tool direct-model trace verifier so the Fable availability preflight and delegated Agent proof stay separate.
+- A Claude Code 2.1.170 minimum for the optional Fable route, with 2.1.210 or newer recommended.
+- An Opus fallback path when Fable is unavailable, rejected, or cannot be attributed in a delegated trace.
+
+### Changed
+
+- Kept the proven Opus `architect` as the default planning route; Fable is additive and runs only after the user explicitly requests it.
+- Expanded the routing documentation and editable visual sources from four configured agents to five.
+- Separated direct Fable availability evidence from delegated subagent evidence.
+
+### Evidence
+
+- A direct Fable preflight on Claude Code 2.1.210 completed and reported `claude-fable-5` model metadata.
+- A five-event no-tool direct preflight and a 14-event explicit `@agent-fable-planner` foreground lifecycle both linked to `claude-fable-5` metadata and passed their separate strict verifiers.
+- The delegated pilot used an agent file byte-identical to the release candidate, performed one allowed Read, made no edits or command calls, and returned the three requested bounded-planning bullets.
+- Both observations describe single runs in one environment, not a model, quality, latency, cost, or future-routing guarantee.
+
 ## 2.0.0 - 2026-07-14
 
 ### Added
