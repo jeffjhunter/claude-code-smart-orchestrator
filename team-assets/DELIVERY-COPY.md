@@ -26,10 +26,10 @@ Open `START-HERE.md` after downloading. Test the system in a disposable project 
 
 ## Opt-in delivery email
 
-**Name:** Claude Code Smart Orchestrator Kit Delivery  
-**Timing:** Immediately after request  
-**Subject:** Your Claude Code Smart Orchestrator Kit  
-**Preview:** The guide, agent files, routing system, tests, and setup instructions are inside.
+- **Name:** Claude Code Smart Orchestrator Kit Delivery
+- **Timing:** Immediately after request
+- **Subject:** Your Claude Code Smart Orchestrator Kit
+- **Preview:** The guide, agent files, routing system, tests, and setup instructions are inside.
 
 **Body:**
 
@@ -43,7 +43,8 @@ Inside you will find the complete visual guide, five Claude Code agent profiles,
 
 Start with `START-HERE.md` and test it in a disposable project or branch before using it on production work.
 
-Jeff J Hunter  
+Jeff J Hunter
+
 AI Money Group
 
 ## SMS delivery
