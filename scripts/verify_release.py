@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed while verifying a built Smart Orchestrator release ZIP."""
+"""Fail closed while verifying both audience-specific release archives."""
 
 from __future__ import annotations
 
@@ -12,48 +12,41 @@ import re
 import stat
 import subprocess
 import sys
+from typing import NoReturn, cast
 import zipfile
 
 from build_release import (
-    ALLOWED_PATHS,
-    ARCHIVE,
-    BINARY_PATHS,
     CHECKSUM_PATH,
     COMMIT_PATH,
-    MANIFEST_PATH,
-    PACKAGE_NAME,
+    DIST,
     ROOT,
     VERSION,
-    collect_files,
-    make_archive,
-    make_checksum,
-    make_commit_marker,
-    make_manifest,
-    snapshot_files,
+    BundleArtifacts,
+    build_release_artifacts,
 )
-from validate_kit import find_secret_like_content
+from validate_kit import find_secret_like_content  # pyright: ignore[reportMissingImports]
 
-DEFAULT_ARCHIVE = ROOT / "dist" / f"{PACKAGE_NAME}.zip"
 MANIFEST_KEYS = {"files", "format", "name", "note", "version"}
 MANIFEST_ENTRY_KEYS = {"bytes", "path", "sha256"}
 COMMIT_KEYS = {"format", "outputs", "package", "version"}
 COMMIT_ENTRY_KEYS = {"bytes", "path", "sha256"}
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
+COMMIT_PACKAGE = "Claude Code Smart Orchestrator audience bundles"
 
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def fail(message: str) -> None:
+def fail(message: str) -> NoReturn:
     raise ValueError(message)
 
 
-def safe_relative(name: str) -> PurePosixPath:
+def safe_relative(name: str, package_name: str) -> PurePosixPath:
     if "\\" in name:
         fail(f"archive member uses a backslash: {name!r}")
     path = PurePosixPath(name)
-    if path.is_absolute() or not path.parts or path.parts[0] != PACKAGE_NAME:
+    if path.is_absolute() or not path.parts or path.parts[0] != package_name:
         fail(f"archive member is outside the package root: {name!r}")
     relative = PurePosixPath(*path.parts[1:])
     if not relative.parts or any(
@@ -84,13 +77,16 @@ def strict_json(data: bytes, label: str) -> object:
         fail(f"{label} is not valid JSON: {exc}")
 
 
-def validate_manifest_schema(manifest: object) -> list[dict[str, object]]:
+def validate_manifest_schema(
+    manifest: object, bundle: BundleArtifacts
+) -> list[dict[str, object]]:
     if type(manifest) is not dict or set(manifest) != MANIFEST_KEYS:
         fail("manifest must contain exactly the documented top-level fields")
+    manifest = cast(dict[str, object], manifest)
     if type(manifest["format"]) is not int or manifest["format"] != 1:
         fail("manifest format must be integer 1")
-    if manifest["name"] != "Claude Code Smart Orchestrator Kit":
-        fail("manifest name is not canonical")
+    if manifest["name"] != bundle.display_name:
+        fail("manifest name is not canonical for this audience bundle")
     if manifest["version"] != VERSION:
         fail("manifest version does not match the release")
     if manifest["note"] != "MANIFEST.json intentionally does not hash itself.":
@@ -99,24 +95,25 @@ def validate_manifest_schema(manifest: object) -> list[dict[str, object]]:
     if type(entries) is not list:
         fail("manifest files field must be a list")
 
-    expected_paths = sorted(ALLOWED_PATHS)
+    expected_paths = [item.path for item in bundle.snapshots]
     observed_paths: list[str] = []
+    expected_by_path = {item.path: item.data for item in bundle.snapshots}
     for entry in entries:
         if type(entry) is not dict or set(entry) != MANIFEST_ENTRY_KEYS:
             fail("manifest file entry has unknown or missing fields")
+        entry = cast(dict[str, object], entry)
         relative = entry["path"]
         byte_count = entry["bytes"]
         content_hash = entry["sha256"]
         if type(relative) is not str:
             fail("manifest path must be a string")
-        # Apply the same path rules without permitting a package-root escape.
         candidate = PurePosixPath(relative)
         if (
             candidate.is_absolute()
             or not candidate.parts
             or candidate.as_posix() != relative
             or any(
-            part in {"", ".", ".."} or ":" in part or "\x00" in part
+                part in {"", ".", ".."} or ":" in part or "\x00" in part
                 for part in candidate.parts
             )
         ):
@@ -125,29 +122,37 @@ def validate_manifest_schema(manifest: object) -> list[dict[str, object]]:
             fail(f"manifest byte count is invalid: {relative!r}")
         if type(content_hash) is not str or not SHA256_PATTERN.fullmatch(content_hash):
             fail(f"manifest SHA-256 is invalid: {relative!r}")
+        expected_data = expected_by_path.get(relative)
+        if expected_data is None:
+            fail(f"manifest contains an unexpected path: {relative!r}")
+        if byte_count != len(expected_data) or content_hash != sha256(expected_data):
+            fail(f"manifest does not match trusted source bytes: {relative!r}")
         observed_paths.append(relative)
     if observed_paths != expected_paths:
-        fail("manifest file order or exact allowlist is not canonical")
+        fail("manifest file order or exact audience inventory is not canonical")
     return entries
 
 
 def validate_commit_schema(
-    marker: object, actual_outputs: dict[str, bytes]
+    marker: object,
+    actual_outputs: dict[str, bytes],
+    expected_names: list[str],
 ) -> list[dict[str, object]]:
     if type(marker) is not dict or set(marker) != COMMIT_KEYS:
         fail("release commit marker has unknown or missing top-level fields")
+    marker = cast(dict[str, object], marker)
     if type(marker["format"]) is not int or marker["format"] != 1:
         fail("release commit marker format must be integer 1")
-    if marker["package"] != PACKAGE_NAME or marker["version"] != VERSION:
+    if marker["package"] != COMMIT_PACKAGE or marker["version"] != VERSION:
         fail("release commit marker package or version is not canonical")
     entries = marker["outputs"]
     if type(entries) is not list:
         fail("release commit marker outputs must be a list")
-    expected_names = [ARCHIVE.name, MANIFEST_PATH.name, CHECKSUM_PATH.name]
     observed_names: list[str] = []
     for entry in entries:
         if type(entry) is not dict or set(entry) != COMMIT_ENTRY_KEYS:
             fail("release commit output has unknown or missing fields")
+        entry = cast(dict[str, object], entry)
         name = entry["path"]
         byte_count = entry["bytes"]
         content_hash = entry["sha256"]
@@ -168,33 +173,25 @@ def validate_commit_schema(
     return entries
 
 
-def verify_canonical_zip_bytes(
-    archive_bytes: bytes,
-    snapshots: list[tuple[Path, bytes]],
-    manifest_bytes: bytes,
-) -> int:
-    """Require exact canonical bytes, then independently inspect ZIP metadata."""
-    expected_archive = make_archive(snapshots, manifest_bytes)
-    if archive_bytes != expected_archive:
-        fail("archive bytes are not the exact canonical release representation")
+def verify_bundle_bytes(bundle: BundleArtifacts, archive_bytes: bytes) -> int:
+    if archive_bytes != bundle.archive:
+        fail(f"{bundle.key} archive bytes are not canonical")
+    prefix = f"{bundle.package_name}/"
+    expected_relatives = [item.path for item in bundle.snapshots] + ["MANIFEST.json"]
+    expected_data = {item.path: item.data for item in bundle.snapshots}
+    expected_data["MANIFEST.json"] = bundle.manifest
 
-    prefix = f"{PACKAGE_NAME}/"
-    expected_relatives = [
-        path.relative_to(ROOT).as_posix() for path, _ in snapshots
-    ] + ["MANIFEST.json"]
-    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as bundle:
-        if bundle.comment != b"":
-            fail("archive-level ZIP comment is not canonical")
-        infos = bundle.infolist()
-        if [info.filename for info in infos] != [
-            prefix + relative for relative in expected_relatives
-        ]:
-            fail("archive member order or names are not canonical")
-
+    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+        if archive.comment != b"":
+            fail(f"{bundle.key} archive comment is not canonical")
+        infos = archive.infolist()
+        expected_names = [prefix + relative for relative in expected_relatives]
+        if [info.filename for info in infos] != expected_names:
+            fail(f"{bundle.key} archive member order or names are not canonical")
         for info, relative in zip(infos, expected_relatives):
             if info.is_dir():
                 fail("archive contains an unexpected directory entry")
-            if safe_relative(info.filename).as_posix() != relative:
+            if safe_relative(info.filename, bundle.package_name).as_posix() != relative:
                 fail(f"archive member path is not canonical: {info.filename!r}")
             executable = relative != "MANIFEST.json" and Path(relative).suffix.casefold() in {
                 ".py",
@@ -202,122 +199,49 @@ def verify_canonical_zip_bytes(
                 ".sh",
             }
             expected_mode = stat.S_IFREG | (0o755 if executable else 0o644)
-            expected_external = expected_mode << 16
-            if info.create_system != 3 or info.external_attr != expected_external:
+            if info.create_system != 3 or info.external_attr != expected_mode << 16:
                 fail(f"archive mode or creator is not canonical: {info.filename!r}")
             if info.date_time != (1980, 1, 1, 0, 0, 0):
                 fail(f"archive timestamp is not canonical: {info.filename!r}")
             if info.compress_type != zipfile.ZIP_STORED:
                 fail(f"archive compression is not canonical: {info.filename!r}")
             if info.extra != b"" or info.comment != b"":
-                fail(f"archive member extra fields or comment are not canonical: {info.filename!r}")
+                fail(f"archive metadata is not canonical: {info.filename!r}")
             if info.flag_bits != 0 or info.internal_attr != 0:
                 fail(f"archive flags are not canonical: {info.filename!r}")
             if info.create_version != 20 or info.extract_version != 20:
                 fail(f"archive ZIP version fields are not canonical: {info.filename!r}")
-            if info.reserved != 0 or info.volume != 0:
-                fail(f"archive reserved metadata is not canonical: {info.filename!r}")
-            if info.compress_size != info.file_size:
-                fail(f"stored archive member size is not canonical: {info.filename!r}")
-            # Reading verifies each CRC before any archive payload is trusted.
-            bundle.read(info)
-    return len(expected_relatives)
-
-
-def verify_archive(path: Path) -> tuple[int, str]:
-    if path.name != ARCHIVE.name:
-        fail(f"archive filename must be canonical: {ARCHIVE.name}")
-
-    snapshots = snapshot_files(collect_files())
-    expected_manifest = make_manifest(snapshots)
-    expected_archive = make_archive(snapshots, expected_manifest)
-    expected_checksum = make_checksum(expected_archive)
-    expected_commit = make_commit_marker(
-        expected_archive, expected_manifest, expected_checksum
-    )
-
-    # Bound archive reads using the trusted expected size, then compare every
-    # byte before opening it as a ZIP.
-    if path.stat().st_size != len(expected_archive):
-        fail("archive size is not canonical")
-    archive_bytes = path.read_bytes()
-    manifest_path = path.parent / MANIFEST_PATH.name
-    checksum_path = path.parent / CHECKSUM_PATH.name
-    commit_path = path.parent / COMMIT_PATH.name
-    for adjacent in (manifest_path, checksum_path, commit_path):
-        if not adjacent.is_file():
-            fail(f"adjacent release output is missing: {adjacent.name}")
-        if adjacent.stat().st_size > 1_000_000:
-            fail(f"adjacent release output is unexpectedly large: {adjacent.name}")
-    manifest_bytes = manifest_path.read_bytes()
-    checksum_bytes = checksum_path.read_bytes()
-    commit_bytes = commit_path.read_bytes()
-
-    manifest = strict_json(manifest_bytes, "adjacent MANIFEST.json")
-    entries = validate_manifest_schema(manifest)
-    actual_outputs = {
-        path.name: archive_bytes,
-        MANIFEST_PATH.name: manifest_bytes,
-        CHECKSUM_PATH.name: checksum_bytes,
-    }
-    marker = strict_json(commit_bytes, "RELEASE-COMMIT.json")
-    validate_commit_schema(marker, actual_outputs)
-
-    if manifest_bytes != expected_manifest:
-        fail("adjacent MANIFEST.json bytes are not canonical")
-    if checksum_bytes != expected_checksum:
-        fail("SHA256SUMS.txt bytes are not canonical")
-    if commit_bytes != expected_commit:
-        fail("RELEASE-COMMIT.json bytes are not canonical")
-
-    count = verify_canonical_zip_bytes(
-        archive_bytes, snapshots, expected_manifest
-    )
-    archive_hash = sha256(archive_bytes)
-
-    with zipfile.ZipFile(io.BytesIO(archive_bytes)) as bundle:
-        relative_infos = {
-            safe_relative(info.filename).as_posix(): info
-            for info in bundle.infolist()
-        }
-        for entry in entries:
-            relative = entry["path"]
-            info = relative_infos[relative]
-            data = bundle.read(info)
-            if entry["bytes"] != len(data) or entry["sha256"] != sha256(data):
-                fail(f"manifest size or hash mismatch: {relative!r}")
-            if relative not in BINARY_PATHS:
+            data = archive.read(info)
+            if data != expected_data[relative]:
+                fail(f"archive member bytes do not match source: {relative!r}")
+            if relative.endswith(".md") and b"{{" in data:
+                fail(f"unresolved placeholder in packaged text: {relative!r}")
+            if relative not in {
+                "Claude-Code-Smart-Orchestrator-Kit.pdf",
+                "Claude-Code-Smart-Orchestrator-Infographic.png",
+                "MANIFEST.json",
+            }:
                 text = data.decode("utf-8")
                 findings = find_secret_like_content(text)
                 if findings:
                     line, label = findings[0]
                     fail(f"possible {label} in packaged text: {relative}:{line}")
+        manifest = strict_json(archive.read(prefix + "MANIFEST.json"), "embedded manifest")
+        validate_manifest_schema(manifest, bundle)
+        if "Claude-Code-Smart-Orchestrator-Kit.pdf" in expected_data:
+            if not expected_data["Claude-Code-Smart-Orchestrator-Kit.pdf"].startswith(b"%PDF-"):
+                fail("giveaway guide does not have a PDF header")
+        if "Claude-Code-Smart-Orchestrator-Infographic.png" in expected_data:
+            if not expected_data["Claude-Code-Smart-Orchestrator-Infographic.png"].startswith(b"\x89PNG\r\n\x1a\n"):
+                fail("team infographic does not have a PNG header")
+    return len(expected_relatives)
 
-        if not bundle.read(relative_infos["Claude-Code-Smart-Orchestrator-Kit.pdf"]).startswith(b"%PDF-"):
-            fail("packaged guide does not have a PDF header")
-        if not bundle.read(relative_infos["Claude-Code-Smart-Orchestrator-Infographic.png"]).startswith(b"\x89PNG\r\n\x1a\n"):
-            fail("packaged infographic does not have a PNG header")
 
+def _run_local_checks() -> None:
     commands = (
         [sys.executable, "-I", "starter/scripts/validate_kit.py"],
-        [
-            sys.executable,
-            "-m",
-            "unittest",
-            "discover",
-            "-s",
-            "starter/tests",
-            "-q",
-        ],
-        [
-            sys.executable,
-            "-m",
-            "unittest",
-            "discover",
-            "-s",
-            "tests",
-            "-q",
-        ],
+        [sys.executable, "-m", "unittest", "discover", "-s", "starter/tests", "-q"],
+        [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-q"],
     )
     for command in commands:
         completed = subprocess.run(
@@ -326,21 +250,62 @@ def verify_archive(path: Path) -> tuple[int, str]:
             capture_output=True,
             text=True,
             check=False,
-            timeout=60,
+            timeout=90,
         )
         if completed.returncode != 0:
             output = (completed.stdout + completed.stderr).strip()
             fail(f"trusted local check failed: {' '.join(command)}\n{output}")
 
-    return count, archive_hash
+
+def verify_release_set(
+    directory: Path = DIST, *, run_local_checks: bool = True
+) -> dict[str, tuple[int, str]]:
+    trusted = build_release_artifacts()
+    directory = directory.resolve()
+    expected_outputs = trusted.outputs
+    actual: dict[str, bytes] = {}
+    for path, expected_data in expected_outputs:
+        candidate = directory / path.name
+        if not candidate.is_file():
+            fail(f"release output is missing: {candidate.name}")
+        if candidate.stat().st_size != len(expected_data):
+            fail(f"release output size is not canonical: {candidate.name}")
+        actual[candidate.name] = candidate.read_bytes()
+
+    committed_names = [path.name for path, _ in expected_outputs[:-1]]
+    marker = strict_json(actual[COMMIT_PATH.name], "RELEASE-COMMIT.json")
+    validate_commit_schema(
+        marker,
+        {name: actual[name] for name in committed_names},
+        committed_names,
+    )
+    if actual[COMMIT_PATH.name] != trusted.commit:
+        fail("RELEASE-COMMIT.json bytes are not canonical")
+    if actual[CHECKSUM_PATH.name] != trusted.checksum:
+        fail("SHA256SUMS.txt bytes are not canonical")
+
+    results: dict[str, tuple[int, str]] = {}
+    for key, bundle in trusted.bundles.items():
+        archive_bytes = actual[bundle.archive_path.name]
+        manifest_bytes = actual[bundle.manifest_path.name]
+        if manifest_bytes != bundle.manifest:
+            fail(f"{key} adjacent manifest bytes are not canonical")
+        manifest = strict_json(manifest_bytes, f"{key} manifest")
+        validate_manifest_schema(manifest, bundle)
+        count = verify_bundle_bytes(bundle, archive_bytes)
+        results[key] = (count, sha256(archive_bytes))
+
+    if run_local_checks:
+        _run_local_checks()
+    return results
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("archive", nargs="?", type=Path, default=DEFAULT_ARCHIVE)
+    parser.add_argument("directory", nargs="?", type=Path, default=DIST)
     args = parser.parse_args(argv)
     try:
-        count, archive_hash = verify_archive(args.archive.resolve())
+        results = verify_release_set(args.directory)
     except (
         OSError,
         RuntimeError,
@@ -353,11 +318,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"- {exc}")
         return 1
     print("RELEASE VERIFICATION PASS")
-    print(f"- archive: {args.archive.resolve()}")
-    print(f"- files: {count}")
-    print(f"- sha256: {archive_hash}")
-    print("- exact canonical ZIP bytes/order/metadata, strict manifests, coordinated commit marker, trusted-source match, secret scan, local tests, and asset headers verified")
-    print("- trust boundary: this verifier compares a locally built archive with this trusted checkout; it is not a general untrusted-ZIP sandbox")
+    for key, (count, archive_hash) in results.items():
+        print(f"- {key}: {count} files, sha256 {archive_hash}")
+    print("- two audience-specific archives, exact canonical bytes/order/metadata, strict manifests, coordinated commit marker, secret scan, local tests, and asset headers verified")
+    print("- trust boundary: this verifier compares locally built archives with this trusted checkout; it is not a general untrusted-ZIP sandbox")
     return 0
 
 

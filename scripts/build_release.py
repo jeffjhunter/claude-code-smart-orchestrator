@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Build a deterministic, checksummed Smart Orchestrator release archive."""
+"""Build deterministic, audience-specific Smart Orchestrator release archives."""
 
 from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
+from dataclasses import dataclass
 import hashlib
 import io
 import json
@@ -21,74 +22,35 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", VERSION):
     raise RuntimeError("VERSION must be a filename-safe semantic version")
-PACKAGE_NAME = f"Claude-Code-Smart-Orchestrator-Full-Kit-v{VERSION}"
+
+REPOSITORY = "jeffjhunter/claude-code-smart-orchestrator"
+RELEASE_BASE_URL = f"https://github.com/{REPOSITORY}/releases/download/v{VERSION}"
+RELEASE_PAGE_URL = f"https://github.com/{REPOSITORY}/releases/tag/v{VERSION}"
+GIVEAWAY_PACKAGE_NAME = f"Claude-Code-Smart-Orchestrator-Giveaway-v{VERSION}"
+TEAM_PACKAGE_NAME = f"Claude-Code-Smart-Orchestrator-Team-Assets-v{VERSION}"
 DIST = ROOT / "dist"
-ARCHIVE = DIST / f"{PACKAGE_NAME}.zip"
-MANIFEST_PATH = DIST / "MANIFEST.json"
+GIVEAWAY_ARCHIVE = DIST / f"{GIVEAWAY_PACKAGE_NAME}.zip"
+TEAM_ARCHIVE = DIST / f"{TEAM_PACKAGE_NAME}.zip"
+GIVEAWAY_MANIFEST_PATH = DIST / "MANIFEST-GIVEAWAY.json"
+TEAM_MANIFEST_PATH = DIST / "MANIFEST-TEAM-ASSETS.json"
 CHECKSUM_PATH = DIST / "SHA256SUMS.txt"
 COMMIT_PATH = DIST / "RELEASE-COMMIT.json"
 LOCK_PATH = DIST / ".build-release.lock"
+GIVEAWAY_URL = f"{RELEASE_BASE_URL}/{GIVEAWAY_ARCHIVE.name}"
+TEAM_URL = f"{RELEASE_BASE_URL}/{TEAM_ARCHIVE.name}"
 
 sys.path.insert(0, str(ROOT / "starter" / "scripts"))
-from validate_kit import find_secret_like_content  # noqa: E402
+from validate_kit import find_secret_like_content  # noqa: E402  # pyright: ignore[reportMissingImports]
 
 EXCLUDED_PARTS = {
     ".git",
     ".pytest_cache",
+    ".ruff_cache",
+    ".mypy_cache",
     "__pycache__",
     "dist",
     "output",
     "tmp",
-}
-ALLOWED_PATHS = {
-    ".gitattributes",
-    ".gitignore",
-    ".github/ISSUE_TEMPLATE/bug_report.yml",
-    ".github/ISSUE_TEMPLATE/config.yml",
-    ".github/ISSUE_TEMPLATE/feature_request.yml",
-    ".github/PULL_REQUEST_TEMPLATE.md",
-    ".github/dependabot.yml",
-    ".github/workflows/ci.yml",
-    "README-FIRST.md",
-    "README.md",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md",
-    "CREDITS.md",
-    "LICENSE",
-    "LIVE-TEST-RESULTS.md",
-    "RELEASING.md",
-    "requirements-dev.txt",
-    "social-post.md",
-    "SECURITY.md",
-    "VERSION",
-    "Claude-Code-Smart-Orchestrator-Kit.pdf",
-    "Claude-Code-Smart-Orchestrator-Infographic.png",
-    "scripts/build_release.py",
-    "scripts/build_visual_assets.ps1",
-    "scripts/verify_release.py",
-    "source/guide.html",
-    "source/infographic.svg",
-    "starter/CLAUDE.md",
-    "starter/MODEL-POLICY.md",
-    "starter/ROUTING-MATRIX.md",
-    "starter/SETUP.md",
-    "starter/TEST-PROMPTS.md",
-    "starter/.claude/agents/fable-planner.md",
-    "starter/.claude/agents/architect.md",
-    "starter/.claude/agents/deep-reasoner.md",
-    "starter/.claude/agents/fast-worker.md",
-    "starter/.claude/agents/qa-reviewer.md",
-    "starter/scripts/validate_kit.py",
-    "starter/scripts/verify_direct_model_trace.py",
-    "starter/scripts/verify_runtime_trace.py",
-    "starter/tests/test_verify_direct_model_trace.py",
-    "starter/tests/test_validate_kit.py",
-    "starter/tests/test_verify_runtime_trace.py",
-    "tests/test_release_tools.py",
-}
-BINARY_PATHS = {
-    "Claude-Code-Smart-Orchestrator-Kit.pdf",
-    "Claude-Code-Smart-Orchestrator-Infographic.png",
 }
 SENSITIVE_SUFFIXES = {
     ".bak",
@@ -101,25 +63,124 @@ SENSITIVE_SUFFIXES = {
     ".pem",
     ".pfx",
 }
+BINARY_SOURCE_PATHS = {
+    "Claude-Code-Smart-Orchestrator-Kit.pdf",
+    "Claude-Code-Smart-Orchestrator-Infographic.png",
+}
+
+GIVEAWAY_SOURCE_MAP = {
+    "START-HERE.md": "README-FIRST.md",
+    "Claude-Code-Smart-Orchestrator-Kit.pdf": "Claude-Code-Smart-Orchestrator-Kit.pdf",
+    "CREDITS.md": "CREDITS.md",
+    "LICENSE": "LICENSE",
+    "LIVE-TEST-RESULTS.md": "LIVE-TEST-RESULTS.md",
+    "SECURITY.md": "SECURITY.md",
+    "requirements-dev.txt": "requirements-dev.txt",
+    "starter/CLAUDE.md": "starter/CLAUDE.md",
+    "starter/MODEL-POLICY.md": "starter/MODEL-POLICY.md",
+    "starter/ROUTING-MATRIX.md": "starter/ROUTING-MATRIX.md",
+    "starter/SETUP.md": "starter/SETUP.md",
+    "starter/TEST-PROMPTS.md": "starter/TEST-PROMPTS.md",
+    "starter/.claude/agents/architect.md": "starter/.claude/agents/architect.md",
+    "starter/.claude/agents/deep-reasoner.md": "starter/.claude/agents/deep-reasoner.md",
+    "starter/.claude/agents/fable-planner.md": "starter/.claude/agents/fable-planner.md",
+    "starter/.claude/agents/fast-worker.md": "starter/.claude/agents/fast-worker.md",
+    "starter/.claude/agents/qa-reviewer.md": "starter/.claude/agents/qa-reviewer.md",
+    "starter/scripts/validate_kit.py": "starter/scripts/validate_kit.py",
+    "starter/scripts/verify_direct_model_trace.py": "starter/scripts/verify_direct_model_trace.py",
+    "starter/scripts/verify_runtime_trace.py": "starter/scripts/verify_runtime_trace.py",
+    "starter/tests/test_validate_kit.py": "starter/tests/test_validate_kit.py",
+    "starter/tests/test_verify_direct_model_trace.py": "starter/tests/test_verify_direct_model_trace.py",
+    "starter/tests/test_verify_runtime_trace.py": "starter/tests/test_verify_runtime_trace.py",
+}
+TEAM_SOURCE_MAP = {
+    "START-HERE.md": "team-assets/START-HERE.md",
+    "SOCIAL-POST.md": "social-post.md",
+    "COMMENT-REPLIES.md": "team-assets/COMMENT-REPLIES.md",
+    "DELIVERY-COPY.md": "team-assets/DELIVERY-COPY.md",
+    "LAUNCH-CHECKLIST.md": "team-assets/LAUNCH-CHECKLIST.md",
+    "Claude-Code-Smart-Orchestrator-Infographic.png": "Claude-Code-Smart-Orchestrator-Infographic.png",
+}
+MAINTAINER_PATHS = {
+    ".gitattributes",
+    ".gitignore",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/feature_request.yml",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/dependabot.yml",
+    ".github/workflows/ci.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "RELEASING.md",
+    "VERSION",
+    "scripts/build_release.py",
+    "scripts/build_visual_assets.ps1",
+    "scripts/verify_release.py",
+    "source/guide.html",
+    "source/infographic.svg",
+    "tests/test_release_tools.py",
+    "tests/test_split_release.py",
+}
+REPOSITORY_ALLOWED_PATHS = (
+    set(GIVEAWAY_SOURCE_MAP.values())
+    | set(TEAM_SOURCE_MAP.values())
+    | MAINTAINER_PATHS
+)
+
+
+@dataclass(frozen=True)
+class Snapshot:
+    path: str
+    data: bytes
+
+
+@dataclass(frozen=True)
+class BundleArtifacts:
+    key: str
+    package_name: str
+    display_name: str
+    archive_path: Path
+    manifest_path: Path
+    snapshots: tuple[Snapshot, ...]
+    manifest: bytes
+    archive: bytes
+
+
+@dataclass(frozen=True)
+class ReleaseArtifacts:
+    bundles: dict[str, BundleArtifacts]
+    checksum: bytes
+    commit: bytes
+    outputs: tuple[tuple[Path, bytes], ...]
 
 
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def validate_embedded_manifest(path: Path, expected_manifest: bytes) -> None:
-    """Accept a package-root manifest only when it is the canonical one."""
-    if path.read_bytes() != expected_manifest:
+def _safe_source_bytes(path: Path) -> bytes:
+    relative = path.relative_to(ROOT).as_posix()
+    data = path.read_bytes()
+    if relative in BINARY_SOURCE_PATHS:
+        return data
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise RuntimeError(f"Release text file is not UTF-8: {relative}") from exc
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    findings = find_secret_like_content(text)
+    if findings:
+        line, label = findings[0]
         raise RuntimeError(
-            "Root MANIFEST.json is present but does not exactly match "
-            "the current canonical package manifest"
+            f"Refusing possible {label} in release text: {relative}:{line}"
         )
+    return text.encode("utf-8")
 
 
-def collect_files() -> list[Path]:
-    files: list[Path] = []
-    embedded_manifest = ROOT / "MANIFEST.json"
-    embedded_manifest_present = False
+def validate_repository_inventory() -> None:
+    present: set[str] = set()
     for path in ROOT.rglob("*"):
         relative = path.relative_to(ROOT)
         if any(part in EXCLUDED_PARTS for part in relative.parts):
@@ -127,79 +188,71 @@ def collect_files() -> list[Path]:
         if path.suffix == ".pyc":
             continue
         if path.is_symlink():
-            raise RuntimeError(f"Refusing to package symbolic link: {relative.as_posix()}")
-        if path.is_file():
-            if path == embedded_manifest:
-                embedded_manifest_present = True
-                continue
-            relative_name = relative.as_posix()
-            lowered_name = path.name.casefold()
-            if (
-                lowered_name == ".env"
-                or lowered_name.startswith(".env.")
-                or path.suffix.casefold() in SENSITIVE_SUFFIXES
-                or lowered_name.endswith("~")
-            ):
-                raise RuntimeError(
-                    f"Refusing sensitive or backup release source: {relative_name}"
-                )
-            if relative_name not in ALLOWED_PATHS:
-                raise RuntimeError(f"Unallowlisted release source file: {relative_name}")
-            files.append(path)
-
-    files.sort(key=lambda item: item.relative_to(ROOT).as_posix())
-    present = {path.relative_to(ROOT).as_posix() for path in files}
-    missing = sorted(ALLOWED_PATHS - present)
+            raise RuntimeError(f"Refusing symbolic link: {relative.as_posix()}")
+        if not path.is_file():
+            continue
+        name = relative.as_posix()
+        lowered = path.name.casefold()
+        if (
+            lowered == ".env"
+            or lowered.startswith(".env.")
+            or path.suffix.casefold() in SENSITIVE_SUFFIXES
+            or lowered.endswith("~")
+        ):
+            raise RuntimeError(f"Refusing sensitive or backup source: {name}")
+        if name not in REPOSITORY_ALLOWED_PATHS:
+            raise RuntimeError(f"Unallowlisted repository file: {name}")
+        present.add(name)
+    missing = sorted(REPOSITORY_ALLOWED_PATHS - present)
     if missing:
-        raise RuntimeError("Release is missing required files: " + ", ".join(missing))
-    if embedded_manifest_present:
-        expected_manifest = make_manifest(snapshot_files(files))
-        validate_embedded_manifest(embedded_manifest, expected_manifest)
-    return files
+        raise RuntimeError("Repository is missing required files: " + ", ".join(missing))
 
 
-def release_bytes(path: Path) -> bytes:
-    relative = path.relative_to(ROOT).as_posix()
-    data = path.read_bytes()
-    if relative in BINARY_PATHS:
-        return data
-    try:
-        text = data.decode("utf-8-sig")
-    except UnicodeDecodeError as exc:
-        raise RuntimeError(f"Release text file is not UTF-8: {relative}") from exc
-    return text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+def _hydrate_text(data: bytes) -> bytes:
+    text = data.decode("utf-8")
+    replacements = {
+        "{{GIVEAWAY_URL}}": GIVEAWAY_URL,
+        "{{TEAM_URL}}": TEAM_URL,
+        "{{RELEASE_PAGE_URL}}": RELEASE_PAGE_URL,
+        "{{VERSION}}": VERSION,
+    }
+    for placeholder, value in replacements.items():
+        text = text.replace(placeholder, value)
+    if "{{" in text or "}}" in text:
+        raise RuntimeError("Unresolved placeholder in team asset")
+    return text.encode("utf-8")
 
 
-def snapshot_files(files: list[Path]) -> list[tuple[Path, bytes]]:
-    snapshots: list[tuple[Path, bytes]] = []
-    for path in files:
-        data = release_bytes(path)
-        relative = path.relative_to(ROOT).as_posix()
-        if relative not in BINARY_PATHS:
-            text = data.decode("utf-8")
-            findings = find_secret_like_content(text)
-            if findings:
-                line, label = findings[0]
-                raise RuntimeError(
-                    f"Refusing possible {label} in release text: {relative}:{line}"
-                )
-        snapshots.append((path, data))
-    return snapshots
+def _snapshot_map(mapping: dict[str, str], *, hydrate: bool = False) -> tuple[Snapshot, ...]:
+    snapshots: list[Snapshot] = []
+    for output_path, source_path in sorted(mapping.items()):
+        data = _safe_source_bytes(ROOT / source_path)
+        if hydrate and source_path not in BINARY_SOURCE_PATHS:
+            data = _hydrate_text(data)
+        snapshots.append(Snapshot(output_path, data))
+    return tuple(snapshots)
 
 
-def make_manifest(snapshots: list[tuple[Path, bytes]]) -> bytes:
-    entries = []
-    for path, data in snapshots:
-        entries.append(
-            {
-                "path": path.relative_to(ROOT).as_posix(),
-                "bytes": len(data),
-                "sha256": digest(data),
-            }
-        )
+def _asset_links() -> bytes:
+    return (
+        "# Asset Links\n\n"
+        "## Give this resource to leads\n\n"
+        f"Direct giveaway download:\n{GIVEAWAY_URL}\n\n"
+        "## Team reference\n\n"
+        f"Release page:\n{RELEASE_PAGE_URL}\n\n"
+        f"Team Assets download:\n{TEAM_URL}\n\n"
+        "Send only the giveaway download to leads. Do not send the Team Assets ZIP.\n"
+    ).encode("utf-8")
+
+
+def make_manifest(display_name: str, snapshots: tuple[Snapshot, ...]) -> bytes:
+    entries = [
+        {"path": item.path, "bytes": len(item.data), "sha256": digest(item.data)}
+        for item in snapshots
+    ]
     manifest = {
         "format": 1,
-        "name": "Claude Code Smart Orchestrator Kit",
+        "name": display_name,
         "version": VERSION,
         "note": "MANIFEST.json intentionally does not hash itself.",
         "files": entries,
@@ -216,43 +269,105 @@ def zip_info(archive_path: str, executable: bool = False) -> zipfile.ZipInfo:
     return info
 
 
-def make_archive(snapshots: list[tuple[Path, bytes]], manifest: bytes) -> bytes:
-    """Return the one canonical byte representation of this release ZIP."""
+def make_archive(
+    package_name: str, snapshots: tuple[Snapshot, ...], manifest: bytes
+) -> bytes:
     output = io.BytesIO()
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_STORED) as bundle:
-        bundle.comment = b""
-        prefix = f"{PACKAGE_NAME}/"
-        for path, data in snapshots:
-            relative = path.relative_to(ROOT).as_posix()
-            executable = path.suffix.casefold() in {".py", ".ps1", ".sh"}
-            bundle.writestr(zip_info(prefix + relative, executable), data)
+        prefix = f"{package_name}/"
+        for item in snapshots:
+            executable = Path(item.path).suffix.casefold() in {".py", ".ps1", ".sh"}
+            bundle.writestr(zip_info(prefix + item.path, executable), item.data)
         bundle.writestr(zip_info(prefix + "MANIFEST.json"), manifest)
     return output.getvalue()
 
 
-def make_checksum(archive: bytes) -> bytes:
-    return f"{digest(archive)}  {ARCHIVE.name}\n".encode("ascii")
+def make_checksum(archives: tuple[tuple[Path, bytes], ...]) -> bytes:
+    lines = [f"{digest(data)}  {path.name}\n" for path, data in archives]
+    return "".join(lines).encode("ascii")
 
 
-def make_commit_marker(
-    archive: bytes, manifest: bytes, checksum: bytes
-) -> bytes:
-    """Describe the complete output set; this marker is published last."""
-    payloads = (
-        (ARCHIVE.name, archive),
-        (MANIFEST_PATH.name, manifest),
-        (CHECKSUM_PATH.name, checksum),
-    )
+def make_commit_marker(outputs: tuple[tuple[Path, bytes], ...]) -> bytes:
     marker = {
         "format": 1,
-        "package": PACKAGE_NAME,
+        "package": "Claude Code Smart Orchestrator audience bundles",
         "version": VERSION,
         "outputs": [
-            {"path": name, "bytes": len(data), "sha256": digest(data)}
-            for name, data in payloads
+            {"path": path.name, "bytes": len(data), "sha256": digest(data)}
+            for path, data in outputs
         ],
     }
     return (json.dumps(marker, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _build_bundle(
+    *,
+    key: str,
+    package_name: str,
+    display_name: str,
+    archive_path: Path,
+    manifest_path: Path,
+    snapshots: tuple[Snapshot, ...],
+) -> BundleArtifacts:
+    manifest = make_manifest(display_name, snapshots)
+    archive = make_archive(package_name, snapshots, manifest)
+    return BundleArtifacts(
+        key=key,
+        package_name=package_name,
+        display_name=display_name,
+        archive_path=archive_path,
+        manifest_path=manifest_path,
+        snapshots=snapshots,
+        manifest=manifest,
+        archive=archive,
+    )
+
+
+def build_release_artifacts() -> ReleaseArtifacts:
+    validate_repository_inventory()
+    giveaway = _build_bundle(
+        key="giveaway",
+        package_name=GIVEAWAY_PACKAGE_NAME,
+        display_name="Claude Code Smart Orchestrator Giveaway",
+        archive_path=GIVEAWAY_ARCHIVE,
+        manifest_path=GIVEAWAY_MANIFEST_PATH,
+        snapshots=_snapshot_map(GIVEAWAY_SOURCE_MAP),
+    )
+    team_snapshots = list(_snapshot_map(TEAM_SOURCE_MAP, hydrate=True))
+    team_snapshots.append(Snapshot("ASSET-LINKS.md", _asset_links()))
+    team_snapshots.sort(key=lambda item: item.path)
+    team = _build_bundle(
+        key="team",
+        package_name=TEAM_PACKAGE_NAME,
+        display_name="Claude Code Smart Orchestrator Team Assets",
+        archive_path=TEAM_ARCHIVE,
+        manifest_path=TEAM_MANIFEST_PATH,
+        snapshots=tuple(team_snapshots),
+    )
+    archive_outputs = (
+        (giveaway.archive_path, giveaway.archive),
+        (team.archive_path, team.archive),
+    )
+    checksum = make_checksum(archive_outputs)
+    committed_outputs = (
+        *archive_outputs,
+        (giveaway.manifest_path, giveaway.manifest),
+        (team.manifest_path, team.manifest),
+        (CHECKSUM_PATH, checksum),
+    )
+    commit = make_commit_marker(committed_outputs)
+    outputs = (*committed_outputs, (COMMIT_PATH, commit))
+    return ReleaseArtifacts(
+        bundles={"giveaway": giveaway, "team": team},
+        checksum=checksum,
+        commit=commit,
+        outputs=outputs,
+    )
+
+
+def validate_embedded_manifest(path: Path, expected_manifest: bytes) -> None:
+    if path.read_bytes() != expected_manifest:
+        raise RuntimeError("Embedded manifest does not match canonical bytes")
 
 
 def _write_staged(path: Path, data: bytes) -> None:
@@ -263,7 +378,6 @@ def _write_staged(path: Path, data: bytes) -> None:
 
 
 def _fsync_directory(directory: Path) -> None:
-    """Persist directory-entry changes where the platform exposes that API."""
     if os.name == "nt":
         return
     descriptor = os.open(directory, os.O_RDONLY)
@@ -275,7 +389,6 @@ def _fsync_directory(directory: Path) -> None:
 
 @contextmanager
 def _release_lock(directory: Path):
-    """Prevent two builders from interleaving a multi-file publication."""
     directory.mkdir(parents=True, exist_ok=True)
     lock = directory / LOCK_PATH.name
     try:
@@ -296,17 +409,10 @@ def _release_lock(directory: Path):
 
 
 def publish_release_payloads(
-    payloads: list[tuple[Path, bytes]],
+    payloads: list[tuple[Path, bytes]] | tuple[tuple[Path, bytes], ...],
     *,
     replace=os.replace,
 ) -> None:
-    """Publish a coordinated output set while retaining the last good set.
-
-    The commit marker must be the final payload. All bytes are staged and
-    flushed before any final path changes. Ordinary publication failures are
-    rolled back to the prior byte-for-byte state; a process crash is detected
-    by the marker because it is replaced only after all other outputs.
-    """
     if not payloads:
         raise ValueError("release payload list must not be empty")
     directories = {path.parent.resolve() for path, _ in payloads}
@@ -327,7 +433,7 @@ def publish_release_payloads(
     rollback_temps: list[Path] = []
 
     with _release_lock(directory):
-        previous: dict[Path, bytes | None] = {
+        previous = {
             target: target.read_bytes() if target.is_file() else None
             for target, _ in payloads
         }
@@ -335,9 +441,6 @@ def publish_release_payloads(
             for target, data in payloads:
                 _write_staged(staged[target], data)
             _fsync_directory(directory)
-
-            # The marker is last, so readers never accept a partially
-            # published set as the newly committed release.
             for target, _ in payloads[:-1]:
                 replace(staged[target], target)
             _fsync_directory(directory)
@@ -346,7 +449,6 @@ def publish_release_payloads(
             _fsync_directory(directory)
         except Exception as publish_error:
             rollback_errors: list[str] = []
-            # Restore data outputs first and the old marker last.
             for target, _ in payloads:
                 old_data = previous[target]
                 try:
@@ -359,11 +461,11 @@ def publish_release_payloads(
                         rollback_temps.append(rollback)
                         _write_staged(rollback, old_data)
                         os.replace(rollback, target)
-                except Exception as rollback_error:  # pragma: no cover - catastrophic I/O
+                except Exception as rollback_error:  # pragma: no cover
                     rollback_errors.append(f"{target.name}: {rollback_error}")
             try:
                 _fsync_directory(directory)
-            except Exception as rollback_error:  # pragma: no cover - catastrophic I/O
+            except Exception as rollback_error:  # pragma: no cover
                 rollback_errors.append(f"directory sync: {rollback_error}")
             if rollback_errors:
                 raise RuntimeError(
@@ -379,24 +481,13 @@ def publish_release_payloads(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.parse_args(argv)
-    files = collect_files()
-    snapshots = snapshot_files(files)
-    manifest = make_manifest(snapshots)
-    archive = make_archive(snapshots, manifest)
-    checksum = make_checksum(archive)
-    commit_marker = make_commit_marker(archive, manifest, checksum)
-    publish_release_payloads(
-        [
-            (ARCHIVE, archive),
-            (MANIFEST_PATH, manifest),
-            (CHECKSUM_PATH, checksum),
-            (COMMIT_PATH, commit_marker),
-        ]
-    )
-
-    print(f"Built: {ARCHIVE}")
-    print(f"SHA256: {digest(archive)}")
-    print(f"Files: {len(snapshots) + 1} (including MANIFEST.json)")
+    release = build_release_artifacts()
+    publish_release_payloads(release.outputs)
+    for key in ("giveaway", "team"):
+        bundle = release.bundles[key]
+        print(f"Built {key}: {bundle.archive_path}")
+        print(f"SHA256 {key}: {digest(bundle.archive)}")
+        print(f"Files {key}: {len(bundle.snapshots) + 1} (including MANIFEST.json)")
     print(f"Commit marker: {COMMIT_PATH}")
     return 0
 
