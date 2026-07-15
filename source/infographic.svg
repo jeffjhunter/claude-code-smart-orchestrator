@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2000" viewBox="0 0 1600 2000" role="img" aria-labelledby="title desc">
-  <title id="title">Claude Code Smart Orchestrator v2 model-routing infographic</title>
-  <desc id="desc">Four configured Claude Code subagent routes with models, effort, permissions, workflow, and verification guidance.</desc>
+  <title id="title">Claude Code Smart Orchestrator v2.1 model-routing infographic</title>
+  <desc id="desc">Four proven Claude Code subagent routes plus an opt-in Fable planner, with models, effort, permissions, workflow, and verification guidance.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#071a2b"/>
@@ -43,32 +43,33 @@
 
   <g class="sans">
     <rect x="90" y="70" width="148" height="48" rx="24" fill="#ff796d"/>
-    <text x="164" y="102" text-anchor="middle" class="pill-text">V2.0.0</text>
+    <text x="164" y="102" text-anchor="middle" class="pill-text">V2.1.0</text>
     <text x="90" y="167" class="eyebrow">CLAUDE CODE SMART ORCHESTRATOR</text>
     <text x="90" y="258" class="headline">Route work by job,</text>
     <text x="90" y="335" class="headline">then verify the route.</text>
-    <text x="90" y="390" class="subhead">Four explicit configured targets. One accountable coordinator.</text>
+    <text x="90" y="390" class="subhead">Four proven routes + one Fable opt-in. One accountable coordinator.</text>
 
     <text x="90" y="470" class="section">Configured agent routes</text>
     <text x="1510" y="470" text-anchor="end" class="small">Policy targets - verify runtime separately</text>
 
     <g filter="url(#shadow)">
-      <rect x="90" y="505" width="342" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
-      <rect x="456" y="505" width="342" height="410" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="4"/>
-      <rect x="822" y="505" width="342" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
-      <rect x="1188" y="505" width="322" height="410" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="4"/>
+      <rect x="90" y="505" width="268" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
+      <rect x="378" y="505" width="268" height="410" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="4"/>
+      <rect x="666" y="505" width="268" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
+      <rect x="954" y="505" width="268" height="410" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="4"/>
+      <rect x="1242" y="505" width="268" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
     </g>
 
-    <g transform="translate(120 540)">
+    <g transform="translate(114 540)">
       <rect width="58" height="58" rx="14" fill="#2ed3c6"/><text x="29" y="38" text-anchor="middle" class="pill-text">AR</text>
       <text y="95" class="label">PLAN</text><text y="140" class="card-title">Architect</text>
       <text y="205" class="model">OPUS</text>
       <rect y="228" width="94" height="38" rx="19" fill="#2ed3c6"/><text x="47" y="253" text-anchor="middle" class="pill-text">HIGH</text>
       <rect x="104" y="228" width="94" height="38" rx="19" fill="none" stroke="#8ceae3"/><text x="151" y="253" text-anchor="middle" class="pill-text teal-text">PLAN</text>
-      <text y="306" class="body">Architecture, boundaries,</text><text y="335" class="body">tradeoffs, sequencing.</text>
+      <text y="306" class="body">Architecture, boundaries,</text><text y="335" class="body">tradeoffs, sequence.</text>
       <text y="358" class="small">Read / Glob / Grep</text>
     </g>
-    <g transform="translate(486 540)">
+    <g transform="translate(402 540)">
       <rect width="58" height="58" rx="14" fill="#ff796d"/><text x="29" y="38" text-anchor="middle" class="pill-text">DR</text>
       <text y="95" class="label">REASON</text><text y="140" class="card-title">Deep Reasoner</text>
       <text y="205" class="model">OPUS</text>
@@ -77,7 +78,16 @@
       <text y="306" class="body">Ambiguity, root cause,</text><text y="335" class="body">high-impact decisions.</text>
       <text y="358" class="small">Read / Glob / Grep</text>
     </g>
-    <g transform="translate(852 540)">
+    <g transform="translate(690 540)">
+      <rect width="58" height="58" rx="14" fill="#2ed3c6"/><text x="29" y="38" text-anchor="middle" class="pill-text">FP</text>
+      <text y="95" class="label">OPT-IN PLAN</text><text y="140" class="card-title">Fable Planner</text>
+      <text y="205" class="model">FABLE</text>
+      <rect y="228" width="108" height="38" rx="19" fill="#2ed3c6"/><text x="54" y="253" text-anchor="middle" class="pill-text">XHIGH</text>
+      <rect x="118" y="228" width="94" height="38" rx="19" fill="none" stroke="#8ceae3"/><text x="165" y="253" text-anchor="middle" class="pill-text teal-text">PLAN</text>
+      <text y="306" class="body">Long-horizon phases,</text><text y="335" class="body">scenarios and gates.</text>
+      <text y="358" class="small">Preflight / verify / fallback</text>
+    </g>
+    <g transform="translate(978 540)">
       <rect width="58" height="58" rx="14" fill="#2ed3c6"/><text x="29" y="38" text-anchor="middle" class="pill-text">FW</text>
       <text y="95" class="label">BUILD</text><text y="140" class="card-title">Fast Worker</text>
       <text y="205" class="model">HAIKU</text>
@@ -86,13 +96,13 @@
       <text y="306" class="body">Bounded edits and</text><text y="335" class="body">exact checks.</text>
       <text y="358" class="small">Read / Write / Shell</text>
     </g>
-    <g transform="translate(1218 540)">
+    <g transform="translate(1266 540)">
       <rect width="58" height="58" rx="14" fill="#ff796d"/><text x="29" y="38" text-anchor="middle" class="pill-text">QA</text>
       <text y="95" class="label">REVIEW</text><text y="140" class="card-title">QA Reviewer</text>
       <text y="205" class="model">SONNET</text>
       <rect y="228" width="94" height="38" rx="19" fill="#ff796d"/><text x="47" y="253" text-anchor="middle" class="pill-text">HIGH</text>
       <rect x="104" y="228" width="122" height="38" rx="19" fill="none" stroke="#ff9b92"/><text x="165" y="253" text-anchor="middle" class="pill-text coral-text">DEFAULT</text>
-      <text y="306" class="body">Independent review and</text><text y="335" class="body">exact user tests.</text>
+      <text y="306" class="body">Independent review</text><text y="335" class="body">and exact tests.</text>
       <text y="358" class="small">Read / Search / Shell</text>
     </g>
 
@@ -120,8 +130,8 @@
       <text class="label">DETERMINISTIC AGENT TEST</text>
       <text y="48" class="card-title">Use an explicit @mention</text>
       <rect y="76" width="620" height="80" rx="14" fill="#061521"/>
-      <text x="20" y="111" class="mono small coral-text">&gt; Use @agent-architect to inspect...</text>
-      <text x="20" y="140" class="mono small teal-text">Return risks. Do not edit.</text>
+      <text x="20" y="111" class="mono small coral-text">&gt; Use @agent-fable-planner to plan...</text>
+      <text x="20" y="140" class="mono small teal-text">Verify trace or fall back to Opus.</text>
       <text y="205" class="body">Checks one named agent and its observed model.</text>
       <text y="245" class="small">Require Agent call + successful result + model event.</text>
     </g>
@@ -140,13 +150,14 @@
       <rect width="16" height="185" rx="8" fill="#ff796d"/>
       <text x="50" y="52" class="label dark-text">EVIDENCE STANDARD</text>
       <text x="50" y="96" class="card-title dark-text">Static validation proves configuration. A trace records one observed run.</text>
-      <text x="50" y="134" class="body dark-text">Neither guarantees future routing, quality, latency, or savings. Measure your own project.</text>
+      <text x="50" y="128" class="body dark-text">Neither guarantees future routing, quality, latency, or savings. Measure your own project.</text>
+      <text x="50" y="158" class="small dark-text">Fable direct + delegated probes observed claude-fable-5 on 2.1.210; re-verify locally.</text>
       <rect x="1150" y="48" width="220" height="76" rx="38" fill="#2ed3c6"/>
       <text x="1260" y="80" text-anchor="middle" class="pill-text">VALIDATE</text>
       <text x="1260" y="104" text-anchor="middle" class="pill-text">THEN VERIFY</text>
     </g>
 
     <text x="90" y="1934" class="small">MIT License | Built by Jeff J Hunter | Inspired by Matt Farmer: mattfarmer.ai/codex-model-routing</text>
-    <text x="1510" y="1934" text-anchor="end" class="small">Claude Code Smart Orchestrator v2</text>
+    <text x="1510" y="1934" text-anchor="end" class="small">Claude Code Smart Orchestrator v2.1</text>
   </g>
 </svg>

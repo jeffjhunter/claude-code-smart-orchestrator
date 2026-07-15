@@ -30,6 +30,15 @@ REQUIRED_DOCS = (
 )
 
 AGENT_PROFILES: dict[str, dict[str, Any]] = {
+    ".claude/agents/fable-planner.md": {
+        "name": "fable-planner",
+        "description": "Produces long-horizon plans for broad goals that span multiple phases, decision points, or operating scenarios. Use only when the user explicitly requests Fable or invokes this agent; otherwise use the Opus architect.",
+        "tools": ("Read", "Glob", "Grep"),
+        "model": "fable",
+        "effort": "xhigh",
+        "permissionMode": "plan",
+        "body_sha256": "02c89f59699b0159ed72002a444311e952bd697e9986e98655820914e97b82da",
+    },
     ".claude/agents/architect.md": {
         "name": "architect",
         "description": "Designs implementation plans, boundaries, interfaces, and dependency order for multi-file or high-consequence work. Use before implementation when the path is not obvious and the cost of a design error justifies Opus reasoning.",
@@ -77,6 +86,29 @@ AGENT_PROFILES: dict[str, dict[str, Any]] = {
 }
 
 BODY_REQUIREMENTS: dict[str, tuple[tuple[str, re.Pattern[str]], ...]] = {
+    "fable-planner": (
+        (
+            "analysis-only no-modification/no-execution invariant",
+            re.compile(
+                r"no Edit, Write, or shell tools.*do not attempt to modify files or execute commands",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+        (
+            "distinct long-horizon planning invariant",
+            re.compile(
+                r"long-horizon planning specialist.*do not replace the Opus `architect`",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+        (
+            "explicit Fable opt-in invariant",
+            re.compile(
+                r"explicit opt-in route.*user requests Fable by name.*Do not treat a broad or strategic task alone as permission",
+                re.IGNORECASE | re.DOTALL,
+            ),
+        ),
+    ),
     "architect": (
         (
             "analysis-only no-modification/no-execution invariant",
@@ -368,14 +400,14 @@ def _validate_metadata(
             f"{relative_path}: name must be {profile['name']!r}, found {name!r}"
         )
     if description != profile["description"]:
-        errors.append(f"{relative_path}: description differs from the exact v2 profile")
+        errors.append(f"{relative_path}: description differs from the exact bundled profile")
     body_hash = hashlib.sha256(body.encode("utf-8")).hexdigest()
     if body_hash != profile["body_sha256"]:
-        errors.append(f"{relative_path}: body differs from the exact v2 profile")
+        errors.append(f"{relative_path}: body differs from the exact bundled profile")
     expected_tools = list(profile["tools"])
     if tools_list != expected_tools:
         errors.append(
-            f"{relative_path}: tools must exactly match the v2 profile {expected_tools!r}"
+            f"{relative_path}: tools must exactly match the bundled profile {expected_tools!r}"
         )
     for key in ("model", "effort", "permissionMode"):
         if metadata.get(key) != profile[key]:
@@ -586,7 +618,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print("STATIC STRUCTURE PASS")
-    print("- exact recursive four-agent inventory verified")
+    print("- exact recursive five-agent inventory verified")
     print("- strict YAML schema, tools, models, effort, and permission modes verified")
     print("- obvious secrets, versioned model identifiers, and pricing claims not found")
     print("- required orchestration documentation is present and internally referenced")

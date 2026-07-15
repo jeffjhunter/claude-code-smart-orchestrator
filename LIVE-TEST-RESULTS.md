@@ -1,11 +1,47 @@
 # Live routing test results
 
-Tested on 2026-07-14 with Claude Code 2.1.210 in a disposable Git repository.
-Each run explicitly requested exactly one project subagent through the Agent
-tool, used project-only settings, disabled session persistence, emitted
-stream JSON, and set a USD 0.75 maximum budget.
+Tested on 2026-07-14 and 2026-07-15 with Claude Code 2.1.210 in
+disposable projects. The final exact-profile Fable proofs were captured on
+2026-07-15.
 
-## Accepted v2 runs
+## Accepted v2.1 Fable runs
+
+A five-event direct run selected the `fable` model alias, returned exactly
+`FABLE_PREFLIGHT_OK` without tool activity, and reported `claude-fable-5`
+assistant metadata. The dedicated direct-model verifier accepted the trace.
+This establishes that Fable resolved for that CLI version, account, policy,
+and moment.
+
+A separate explicit `@agent-fable-planner` probe then completed against the
+exact release-candidate agent file in a narrow disposable project. Its
+14-event foreground stream contained exactly one Agent call, a matching task
+ID, linked `claude-fable-5` child-assistant evidence, progress, completed
+update and notification events, reconciled `resolvedModel` completion
+metadata, one successful Agent result, and one successful final result. The
+agent made exactly one allowed Read, made no edits or command calls, and
+returned the requested three one-sentence bullets. The v2.1
+`verify_runtime_trace.py` accepted the complete trace with `--expected-agent
+fable-planner --expected-model fable`.
+
+The route remains opt-in and should be tested in two stages in every target
+environment:
+
+1. Confirm direct `fable` availability in the current environment.
+2. Explicitly invoke `@agent-fable-planner`, capture stream JSON, and verify a
+   complete attributable subagent lifecycle with Fable-family model metadata.
+
+Claude Code 2.1.170 is the minimum version for this optional route; 2.1.210 or
+newer is recommended. Account access, organization policy, model aliases, and
+runtime availability can still prevent it from running. A single accepted
+probe is not a quality, latency, cost, or future-routing guarantee. If either
+test fails or is inconclusive, use the proven `@agent-architect` or
+`@agent-deep-reasoner` Opus route instead.
+
+## Accepted v2.0 delegated runs
+
+Each v2.0 run explicitly requested exactly one project subagent through the
+Agent tool, used project-only settings, disabled session persistence, emitted
+stream JSON, and set a USD 0.75 maximum budget.
 
 | Agent | Configured route | Observed model metadata | Events | Task outcome | CLI-reported cost |
 |---|---|---|---:|---|---:|
@@ -60,6 +96,8 @@ metadata. The local audit traces had these SHA-256 digests at review time:
 - Fast Worker: `54D2FDA60FE92F3097F0A8922773ACBC17EEB0586210C22BFC25A8434547E9C2`
 - Corrected QA: `628DF6F1D22643596A9327F3116F4B022163BCF94FCB150AF80E0B970E93C474`
 - Blocked QA discovery run: `DCE2D6204B48CB5B40B24D03A65A893AAFD735AB4756651420BF85662394FCB5`
+- Fable direct preflight: `44888183BD36AD6110B6712A93C99350DF3D21077FE43E1FFAF9BFB8268767DC`
+- Fable Planner: `7EF5F6CAAEAE57E616DD0A2FED62B9CF0F5A694F493147B5CE445EF3E5AEF372`
 
 Trace metadata is observed evidence, not cryptographic proof of remote model
 execution. Re-run the probes in your own account and environment before making

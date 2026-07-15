@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Claude Code Smart Orchestrator v2.0.0</title>
+  <title>Claude Code Smart Orchestrator v2.1.0</title>
   <style>
     :root {
       --navy: #071a2b;
@@ -77,6 +77,7 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
     .stack { display: grid; gap: 10px; }
 
     .card {
@@ -213,10 +214,10 @@
   <section class="page dark">
     <div class="cover-grid"></div><div class="orb one"></div><div class="orb two"></div>
     <div class="title-lockup">
-      <div class="version">V2.0.0</div>
+      <div class="version">V2.1.0</div>
       <p class="eyebrow">Claude Code Smart Orchestrator</p>
       <h1>Put the right work<br>on the right model.</h1>
-      <p class="cover-sub">A practical, auditable four-agent routing kit for planning, deep reasoning, fast implementation, and independent review.</p>
+      <p class="cover-sub">A practical, auditable five-agent routing kit with proven Opus defaults and an opt-in Fable planning route.</p>
     </div>
     <div class="cover-routing">
       <div class="route-line">
@@ -227,6 +228,11 @@
       <div class="route-line">
         <div class="route-box"><span class="label">Reason</span><br><strong>Deep Reasoner</strong></div>
         <div class="route-arrow">OPUS / XHIGH</div>
+        <div class="route-box"><span class="label">Permission</span><br><strong>PLAN</strong></div>
+      </div>
+      <div class="route-line">
+        <div class="route-box"><span class="label">Opt-in plan</span><br><strong>Fable Planner</strong></div>
+        <div class="route-arrow">FABLE / XHIGH</div>
         <div class="route-box"><span class="label">Permission</span><br><strong>PLAN</strong></div>
       </div>
       <div class="route-line">
@@ -246,8 +252,8 @@
 
   <section class="page">
     <p class="eyebrow">Start here</p>
-    <h2>What v2 fixes</h2>
-    <p class="lead">The first version described roles. Version 2 makes model routing explicit, tests the configuration defensively, and separates what is configured from what is actually observed at runtime.</p>
+    <h2>What v2.1 adds</h2>
+    <p class="lead">Version 2 made routing explicit and evidence-driven. Version 2.1 preserves the proven Opus planner and adds Fable as a deliberate, separately verified planning option.</p>
     <div class="grid-2">
       <div class="card teal-card"><div class="number">1</div><h3>Explicit model policy</h3><p>Every agent declares a model alias, effort level, permission mode, and limited tool set.</p></div>
       <div class="card coral-card"><div class="number">2</div><h3>Deterministic invocation</h3><p>Use an explicit <code>@agent-name</code> mention when the test must call one named agent.</p></div>
@@ -260,12 +266,12 @@
       <h3>No magic and no guaranteed savings</h3>
       <p>Routing can improve the match between task and model. Actual quality, latency, and cost depend on prompts, project size, tool use, retries, provider behavior, and your plan. Measure your own workload.</p>
     </div>
-    <div class="footer"><span>V2 fixes</span><span class="page-no">02</span></div>
+    <div class="footer"><span>V2.1 additions</span><span class="page-no">02</span></div>
   </section>
 
   <section class="page dark">
     <p class="eyebrow">Architecture</p>
-    <h2>Four lanes, one accountable loop</h2>
+    <h2>Four proven lanes, plus Fable opt-in</h2>
     <p class="lead muted">The coordinator remains responsible for decomposition, routing, context, acceptance criteria, and final integration. Agents do not recursively delegate.</p>
     <div class="stepbar">
       <div class="step"><span>1</span>Scope the task</div>
@@ -273,9 +279,10 @@
       <div class="step"><span>3</span>Verify the result</div>
       <div class="step"><span>4</span>Integrate or retry</div>
     </div>
-    <div class="grid-4">
+    <div class="grid-5">
       <div class="card teal-card"><div class="agent-icon">AR</div><span class="label">Plan</span><h3>Architect</h3><p class="small muted">System shape, boundaries, tradeoffs, sequencing.</p><span class="pill fill">Opus</span><span class="pill">High</span></div>
       <div class="card coral-card"><div class="agent-icon coral-bg">DR</div><span class="label">Reason</span><h3>Deep Reasoner</h3><p class="small muted">Ambiguity, root cause, hard decisions, risk.</p><span class="pill coral-fill">Opus</span><span class="pill">XHigh</span></div>
+      <div class="card teal-card"><div class="agent-icon">FP</div><span class="label">Opt-in plan</span><h3>Fable Planner</h3><p class="small muted">Long-horizon phases, scenarios, and decision gates.</p><span class="pill fill">Fable</span><span class="pill">XHigh</span></div>
       <div class="card teal-card"><div class="agent-icon">FW</div><span class="label">Build</span><h3>Fast Worker</h3><p class="small muted">Bounded edits, repetitive changes, quick checks.</p><span class="pill fill">Haiku</span><span class="pill">Low</span></div>
       <div class="card coral-card"><div class="agent-icon coral-bg">QA</div><span class="label">Review</span><h3>QA Reviewer</h3><p class="small muted">Evidence-based review and exact tests.</p><span class="pill coral-fill">Sonnet</span><span class="pill">High</span></div>
     </div>
@@ -294,7 +301,8 @@
       <div>
         <h3 class="coral">Hard boundaries</h3>
         <ul>
-          <li>Architect and Deep Reasoner are read-only planners.</li>
+          <li>Architect, Deep Reasoner, and Fable Planner are read-only planners.</li>
+          <li>Fable requires a version and availability preflight; use Opus when it is unavailable.</li>
           <li>Fast Worker writes only inside the stated scope.</li>
           <li>QA does not intentionally edit, but a test command can mutate artifacts.</li>
           <li>QA shell access still requires user or session permission; host policy also matters.</li>
@@ -315,6 +323,7 @@
         <tbody>
           <tr><td><strong>architect</strong></td><td>opus</td><td>high</td><td>plan</td><td>Read, Glob, Grep</td><td>Architecture, interfaces, sequence, tradeoffs.</td></tr>
           <tr><td><strong>deep-reasoner</strong></td><td>opus</td><td>xhigh</td><td>plan</td><td>Read, Glob, Grep</td><td>Hard ambiguity, root cause, high-impact reasoning.</td></tr>
+          <tr><td><strong>fable-planner</strong></td><td>fable</td><td>xhigh</td><td>plan</td><td>Read, Glob, Grep</td><td>Opt-in long-horizon roadmap, scenarios, and decision gates; verify before use.</td></tr>
           <tr><td><strong>fast-worker</strong></td><td>haiku</td><td>low</td><td>default</td><td>Read, Glob, Grep, Edit, Write, Bash, PowerShell</td><td>Clear, bounded implementation with named paths.</td></tr>
           <tr><td><strong>qa-reviewer</strong></td><td>sonnet</td><td>high</td><td>default</td><td>Read, Glob, Grep, Bash, PowerShell</td><td>Independent review and exact user-provided tests.</td></tr>
         </tbody>
@@ -327,6 +336,7 @@
           <li>Is the task fully specified and low risk? Try Fast Worker.</li>
           <li>Does it need structure or tradeoff analysis? Use Architect.</li>
           <li>Is the uncertainty itself the problem? Use Deep Reasoner.</li>
+          <li>Want a second planning approach and Fable passed preflight? Explicitly opt in.</li>
           <li>Is the work complete and ready to challenge? Use QA Reviewer.</li>
         </ol>
       </div>
@@ -359,12 +369,17 @@
         <h4>Good packet</h4><p class="small">"Explain the intermittent race. Read the trace and scheduler only. Rank hypotheses and propose the smallest discriminating test."</p>
       </div>
       <div class="card teal-card">
-        <span class="label">03 / Fast Worker</span><div class="model-name">HAIKU</div><span class="pill fill">Low effort</span><span class="pill">Default mode</span>
+        <span class="label">03 / Fable Planner (opt-in)</span><div class="model-name">FABLE</div><span class="pill fill">XHigh effort</span><span class="pill">Plan mode</span>
+        <p class="small muted">After the user explicitly requests Fable and the environment passes preflight, turn a broad objective into a phased roadmap with scenarios and decision gates. Otherwise use Opus.</p>
+        <h4>Good packet</h4><p class="small">"Plan a two-year platform transition. Read only the named evidence. Return scenarios, phases, decision gates, risks, and the first bounded handoff. Do not edit."</p>
+      </div>
+      <div class="card teal-card">
+        <span class="label">04 / Fast Worker</span><div class="model-name">HAIKU</div><span class="pill fill">Low effort</span><span class="pill">Default mode</span>
         <p class="small muted">Make the named change in allowed paths, run exact checks, summarize the diff, and stop on missing scope or a consequential decision.</p>
         <h4>Good packet</h4><p class="small">"Rename this flag in two files. Do not touch generated code. Run the named unit test. Report changed paths."</p>
       </div>
       <div class="card coral-card">
-        <span class="label">04 / QA Reviewer</span><div class="model-name">SONNET</div><span class="pill coral-fill">High effort</span><span class="pill">Default mode</span>
+        <span class="label">05 / QA Reviewer</span><div class="model-name">SONNET</div><span class="pill coral-fill">High effort</span><span class="pill">Default mode</span>
         <p class="small muted">Inspect independently. Run only the exact command if user or session permission allows. Do not intentionally edit; note that test commands can mutate artifacts.</p>
         <h4>Good packet</h4><p class="small">"Review this diff against three criteria. Run exactly: python -m unittest -q. Do not edit. Report denied or unavailable tools."</p>
       </div>
@@ -384,6 +399,9 @@
         <h3>Use an explicit @mention</h3>
         <p>When the question is "does this exact agent work?", explicitly invoke it in Claude Code. Natural-language hints may be ignored or routed differently.</p>
         <div class="code"><span class="prompt">&gt;</span> Use <span class="accent">@agent-architect</span> to inspect the project structure. Return three risks. Do not edit.</div>
+        <div class="code"><span class="prompt">PS&gt;</span> claude -p "Return exactly FABLE_PREFLIGHT_OK. Do not use tools." `
+  --model fable --output-format stream-json --verbose --no-session-persistence</div>
+        <p class="small">Verify that direct trace with <code>verify_direct_model_trace.py</code>, not the Agent-only verifier. Then invoke <code>@agent-fable-planner</code> and verify its separate delegated trace.</p>
         <ul class="checks">
           <li>Named agent tool call appears.</li>
           <li>Agent result completes successfully.</li>
@@ -423,7 +441,7 @@
     <h2>Measure distribution on a real project</h2>
     <p class="lead muted">A router is useful only when it sends representative work to the right lane and the integrated result holds up. Use a pilot that requires architecture, implementation, and review.</p>
     <div class="grid-3">
-      <div class="card"><div class="big-stat">12+</div><h3>Tasks</h3><p class="small muted">At least three representative tasks per expected lane.</p></div>
+      <div class="card"><div class="big-stat">15+</div><h3>Tasks</h3><p class="small muted">At least three representative tasks per included lane.</p></div>
       <div class="card"><div class="big-stat">3x</div><h3>Repeats</h3><p class="small muted">Repeat automatic prompts to detect route instability.</p></div>
       <div class="card"><div class="big-stat">2</div><h3>Scores</h3><p class="small muted">Score route choice separately from answer quality.</p></div>
     </div>
@@ -444,7 +462,8 @@
       <div>
         <h3 class="teal">Pilot shape</h3>
         <ol>
-          <li>Architect proposes the system plan.</li>
+          <li>If explicitly requested, Fable frames long-horizon scenarios and gates.</li>
+          <li>Architect converts the direction into a system plan.</li>
           <li>Deep Reasoner resolves the hardest uncertainty.</li>
           <li>Fast Worker implements bounded slices.</li>
           <li>QA Reviewer challenges each completed slice.</li>
@@ -477,9 +496,11 @@
         <div class="code"><span class="prompt">PS&gt;</span> $stamp = Get-Date -Format yyyyMMdd-HHmmss
 <span class="prompt">PS&gt;</span> Copy-Item .\.claude ".\.claude.backup-$stamp" -Recurse -ErrorAction SilentlyContinue
 <span class="prompt">PS&gt;</span> Copy-Item .\CLAUDE.md ".\CLAUDE.md.backup-$stamp" -ErrorAction SilentlyContinue</div>
-        <h3>3. Merge agents</h3>
-        <div class="code"><span class="prompt">PS&gt;</span> New-Item .\.claude\agents -ItemType Directory -Force
+        <h3>3. Copy only into a new target</h3>
+        <div class="code"><span class="prompt">PS&gt;</span> if (Test-Path .\.claude\agents) { throw "Stop: compare existing agents first." }
+<span class="prompt">PS&gt;</span> New-Item .\.claude\agents -ItemType Directory
 <span class="prompt">PS&gt;</span> Copy-Item .\starter\.claude\agents\*.md .\.claude\agents\</div>
+        <p class="small">If the target exists, follow the per-file collision review in <code>starter/SETUP.md</code>; do not blanket-overwrite it.</p>
       </div>
       <div>
         <h3>4. Merge guidance</h3>
@@ -488,7 +509,7 @@
         <div class="code"><span class="prompt">PS&gt;</span> Get-ChildItem .\.claude\agents
 <span class="prompt">PS&gt;</span> git diff -- .claude CLAUDE.md</div>
         <h3>6. Uninstall or roll back</h3>
-        <p>Restore the timestamped backup, or remove only the four shipped agent files. Never recursively delete a computed path without checking the resolved target.</p>
+        <p>Restore the timestamped backup, or remove only the five shipped agent files. Never recursively delete a computed path without checking the resolved target.</p>
         <div class="callout warn">
           <h3>Permission reminder</h3>
           <p>Frontmatter is one layer. Claude Code permission settings, enterprise policy, hooks, shell behavior, and the operating system can be stricter or interact in surprising ways. Test in a disposable repository first.</p>
@@ -568,6 +589,7 @@ Conditions that require escalation.</div>
           <li>No ambiguous second invocation confuses attribution.</li>
         </ul>
         <div class="callout warn"><p><strong>Observed, not proven forever.</strong> A trace describes one execution in one environment. It does not attest effort. Keep traces outside the repository, redact before sharing, and never commit them.</p></div>
+        <div class="callout"><p><strong>Fable evidence boundary.</strong> On 2.1.210, a five-event no-tool preflight and a 14-event exact-profile delegated foreground probe both observed <code>claude-fable-5</code> and passed their separate strict verifiers. Re-verify each environment or fall back to Opus.</p></div>
       </div>
     </div>
     <div class="footer"><span>Runtime trace evidence</span><span class="page-no">10</span></div>
@@ -576,7 +598,7 @@ Conditions that require escalation.</div>
   <section class="page dark">
     <p class="eyebrow">Validation and security</p>
     <h2>Fail closed before you trust the kit</h2>
-    <p class="lead muted">Agent files are executable configuration and prompt material. Review them like code. The v2 validator checks the packaged policy recursively instead of assuming every relevant file is at the top level.</p>
+    <p class="lead muted">Agent files are executable configuration and prompt material. Review them like code. The v2.1 validator checks the packaged policy recursively instead of assuming every relevant file is at the top level.</p>
     <div class="grid-2">
       <div class="card teal-card">
         <h3>Static validation gates</h3>
@@ -628,7 +650,7 @@ Conditions that require escalation.</div>
     <p class="lead">Use the kit on work that exercises every lane. A planning-only demo cannot validate implementation distribution or the handoff between worker and reviewer.</p>
     <div class="grid-2">
       <div class="stack">
-        <div class="card teal-card"><span class="label">Phase A</span><h3>System framing</h3><p class="small">Architect defines boundaries, data flow, delivery slices, and acceptance criteria. Coordinator approves or revises.</p></div>
+        <div class="card teal-card"><span class="label">Phase A</span><h3>System framing</h3><p class="small">If explicitly requested, Fable frames long-horizon scenarios and gates; otherwise Architect starts here and defines boundaries, data flow, delivery slices, and acceptance criteria.</p></div>
         <div class="card coral-card"><span class="label">Phase B</span><h3>Uncertainty burn-down</h3><p class="small">Deep Reasoner investigates the hardest open question and proposes a discriminating experiment.</p></div>
         <div class="card teal-card"><span class="label">Phase C</span><h3>Bounded construction</h3><p class="small">Fast Worker implements one narrow slice with named paths and an exact check.</p></div>
         <div class="card coral-card"><span class="label">Phase D</span><h3>Independent challenge</h3><p class="small">QA Reviewer tests the slice and reports evidence without intentional edits; test commands may still mutate artifacts.</p></div>
@@ -666,6 +688,7 @@ Conditions that require escalation.</div>
         <tbody>
           <tr><td>Named agent never runs</td><td>Natural-language request, discovery scope, or malformed frontmatter.</td><td>Use an explicit @mention; run strict validation; inspect project scope.</td></tr>
           <tr><td>Wrong model appears</td><td>Alias resolution, per-call override, settings, or stale agent definition.</td><td>Inspect the Agent input and assistant model events; confirm exact file loaded.</td></tr>
+          <tr><td>Fable is unavailable</td><td>Claude Code is older than 2.1.170, account access or policy excludes it, or alias resolution changed.</td><td>Upgrade to 2.1.210+, run the direct preflight, or use the Opus Architect/Deep Reasoner fallback.</td></tr>
           <tr><td>QA command is denied</td><td>User, session, or higher-priority permission policy blocks shell use.</td><td>Report the denial. Do not retry with command variants. Run the check in the coordinator if authorized.</td></tr>
           <tr><td>PowerShell tool unavailable</td><td>CLI version, platform, or agent tool declaration mismatch.</td><td>Check Claude Code version and official PowerShell tool docs.</td></tr>
           <tr><td>Worker edits too much</td><td>Packet did not name allowed paths or stop conditions.</td><td>Revert only with authorization; narrow the packet and rerun in a disposable branch.</td></tr>
@@ -716,7 +739,7 @@ Conditions that require escalation.</div>
           <li>Start the real-project evaluation log.</li>
           <li>Keep claims limited to collected evidence.</li>
         </ul>
-        <div class="callout warn"><h3>Visual guide status</h3><p>This guide explains the policy and workflow. It is not runtime evidence. Use the shipped validator, trace verifier, and your own project acceptance tests.</p></div>
+        <div class="callout warn"><h3>Visual guide status</h3><p>This guide explains the policy and workflow. It is not runtime evidence. Use the shipped validator, direct and Agent trace verifiers, and your own project acceptance tests.</p></div>
         <h3>License</h3>
         <p>MIT License. See the packaged LICENSE file for the complete terms.</p>
         <h3>Credits</h3>
@@ -738,7 +761,7 @@ Conditions that require escalation.</div>
         </div>
         <div class="card teal-card" style="margin-top:15px">
           <span class="label">Version</span>
-          <div class="model-name">2.0.0</div>
+          <div class="model-name">2.1.0</div>
           <p class="small">A model-routing policy, validation harness, and evidence workflow for Claude Code project agents.</p>
           <span class="pill fill">Explicit</span><span class="pill">Auditable</span><span class="pill">Portable</span>
         </div>
