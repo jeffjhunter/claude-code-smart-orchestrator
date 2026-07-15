@@ -1,26 +1,42 @@
 # Smart Orchestrator project instructions
 
-Use role-based delegation to keep the main conversation focused and to avoid spending deep-reasoning effort on routine work.
+Use role-based delegation to keep the parent conversation focused and to match effort to consequence. These instructions guide routing; they do not guarantee that Claude Code will automatically delegate.
+
+## Configured routes
+
+| Agent | Use for | Model alias | Effort |
+|---|---|---:|---:|
+| `architect` | Plans, boundaries, interfaces, and dependency order | `opus` | `high` |
+| `deep-reasoner` | Ambiguous root causes, difficult algorithms, security-sensitive decisions | `opus` | `xhigh` |
+| `fast-worker` | Clear, bounded implementation and routine code changes | `haiku` | `low` |
+| `qa-reviewer` | Independent requirements and test verification | `sonnet` | `high` |
+
+Aliases and effort settings are targets. Runtime configuration, policy, or model availability can change the observed route. Follow `MODEL-POLICY.md` and capture runtime evidence for routing claims.
 
 ## Operating rules
 
 1. Classify the request before delegating: architecture, hard reasoning, implementation, or verification.
-2. Delegate only self-contained work with explicit inputs, file paths, constraints, and acceptance criteria.
-3. Use `architect` for system boundaries, plans, tradeoffs, and dependency ordering. It does not edit files.
-4. Use `deep-reasoner` only for ambiguous root causes, difficult algorithms, security-sensitive reasoning, or decisions with expensive consequences. It does not edit files.
-5. Use `fast-worker` for bounded implementation, boilerplate, formatting, focused refactors, and test updates after the plan is clear.
-6. Use `qa-reviewer` after implementation. It validates requirements, runs relevant checks, and reports evidence without editing files.
-7. Do not ask agents to delegate further. The main conversation owns orchestration and synthesis.
-8. Do not run two agents that may edit the same file at the same time.
-9. Do not accept completion claims without file paths, commands run, and test or inspection evidence.
-10. If requirements are unclear, stop and ask for clarification instead of guessing.
+2. Delegate only self-contained work with explicit inputs, file paths, constraints, excluded scope, acceptance criteria, and a verification method.
+3. Use `architect` before implementation when boundaries, interfaces, or ordering are unclear. It must not edit files.
+4. Reserve `deep-reasoner` for uncertainty or consequence that justifies its higher effort. It must not edit files.
+5. Use `fast-worker` only after the work is bounded and the finish line is explicit.
+6. Use `qa-reviewer` after implementation. It should inspect independently and report evidence rather than rely on another agent's summary.
+7. Do not ask agents to delegate further. The parent conversation owns orchestration, ordering, and synthesis.
+8. Do not run two agents concurrently when either may edit the same file or depend on the other's unfinished output.
+9. Do not accept completion claims without file references, commands or inspections performed, and their outcomes.
+10. Ask for clarification when a missing decision would materially change the result.
+11. Treat prompts and permission modes as guardrails, not a security boundary. The parent permission mode can override them.
+12. Treat QA shell access as potentially mutating even though the QA role is described as read-only.
 
-## Default routing sequence
+## Default sequences
 
-- Small, obvious change: main conversation or `fast-worker`, then `qa-reviewer`.
-- Multi-file feature: `architect`, then one or more bounded `fast-worker` tasks, then `qa-reviewer`.
+- Small, obvious change: parent or `fast-worker`, then `qa-reviewer` when the risk justifies review.
+- Multi-file feature: `architect`, bounded `fast-worker` assignments, then `qa-reviewer`.
 - Difficult failure: `deep-reasoner`, then `fast-worker`, then `qa-reviewer`.
-- Read-only audit: `qa-reviewer` or `architect`, depending on whether the goal is compliance or design.
+- Read-only design audit: `architect`.
+- Read-only compliance or implementation audit: `qa-reviewer`.
+
+Automatic selection remains probabilistic. For a deterministic invocation test, use the agent's UI mention, such as `@agent-architect`, and verify the observed model in runtime evidence.
 
 ## Delegation packet
 
@@ -37,7 +53,9 @@ Every delegated task must include:
 
 Before reporting completion:
 
-- Confirm the requested files changed.
-- Run the narrowest relevant tests or checks.
+- Confirm the requested files changed and unrelated files did not.
+- Run the narrowest relevant tests or inspections.
 - Review the final diff or artifact.
-- Report failures and uncertainty honestly.
+- Resolve or report failed checks.
+- Separate verified facts from assumptions.
+- Report routing as configured unless runtime evidence proves the observed agent, model, and lifecycle.

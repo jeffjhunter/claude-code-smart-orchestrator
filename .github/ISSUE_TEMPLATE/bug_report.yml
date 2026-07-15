@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a reproducible kit, validator, documentation, or routing defect.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Do not include secrets, proprietary source, or unredacted runtime
+        traces. If this may be a security vulnerability, stop and use the
+        [private reporting
+        form](https://github.com/jeffjhunter/codex-model-router-optimization/security/advisories/new)
+        or the no-details fallback in SECURITY.md instead of filing this public
+        issue.
+  - type: input
+    id: version
+    attributes:
+      label: Kit and Claude Code versions
+      placeholder: Kit 2.0.0; Claude Code x.y.z
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and redacted evidence
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include exact commands and outcomes using a disposable repository.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, private paths, proprietary source, and signed response metadata.
+          required: true

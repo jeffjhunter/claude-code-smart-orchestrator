@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/jeffjhunter/codex-model-router-optimization/security/advisories/new
+    about: Send sensitive vulnerability details through GitHub's private reporting flow, never a public issue.
+  - name: Security reporting fallback
+    url: https://jeffjhunter.com/connect
+    about: If private reporting is unavailable, request a secure contact method without including vulnerability details.

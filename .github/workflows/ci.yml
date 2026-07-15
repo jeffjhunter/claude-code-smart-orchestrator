@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Install development dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Validate starter policy
+        run: python -I starter/scripts/validate_kit.py
+
+      - name: Run adversarial tests
+        run: python -m unittest discover -s starter/tests -v
+
+      - name: Run release hardening tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile Python entry points
+        run: >-
+          python -m py_compile
+          starter/scripts/validate_kit.py
+          starter/scripts/verify_runtime_trace.py
+          scripts/build_release.py
+          scripts/verify_release.py
+
+      - name: Check whitespace errors
+        run: git show --check --oneline --no-renames HEAD
+
+  package:
+    name: Build and verify release
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install development dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+
+      - name: Build deterministic archive
+        run: python scripts/build_release.py
+
+      - name: Verify archive against trusted checkout
+        run: python scripts/verify_release.py
+
+      - name: Prove repeatable archive hash
+        shell: bash
+        run: |
+          sha256sum dist/* > first-output-hashes.txt
+          python scripts/build_release.py
+          sha256sum dist/* > second-output-hashes.txt
+          diff -u first-output-hashes.txt second-output-hashes.txt
+          python scripts/verify_release.py

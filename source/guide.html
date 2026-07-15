@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code Smart Orchestrator v2.0.0</title>
+  <style>
+    :root {
+      --navy: #071a2b;
+      --navy-2: #0d293d;
+      --navy-3: #12364b;
+      --teal: #2ed3c6;
+      --teal-soft: #8ceae3;
+      --coral: #ff796d;
+      --cream: #f7f3ea;
+      --white: #ffffff;
+      --ink: #132735;
+      --muted: #607785;
+      --line: #d8e3e7;
+      --pale: #eef7f6;
+      --pale-coral: #fff0ed;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #d8e0e4; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); }
+    a { color: inherit; text-decoration: none; }
+    code, pre { font-family: Consolas, "Courier New", monospace; }
+
+    @page { size: Letter; margin: 0; }
+    @media print {
+      html, body { background: white; }
+      .page { height: 11in !important; margin: 0 !important; box-shadow: none !important; page-break-after: always; break-after: page; }
+      .page:last-child { page-break-after: auto; break-after: auto; }
+    }
+
+    .page {
+      width: 8.5in;
+      height: 11in;
+      margin: 18px auto;
+      padding: 0.52in 0.58in 0.45in;
+      position: relative;
+      overflow: hidden;
+      background: var(--cream);
+      box-shadow: 0 8px 28px rgba(7, 26, 43, 0.2);
+    }
+
+    .dark { background: var(--navy); color: var(--white); }
+    .dark .muted { color: #b9cbd4; }
+    .dark .eyebrow { color: var(--teal-soft); }
+    .dark .rule { background: #21485d; }
+    .dark .footer { color: #9eb5c0; border-color: #21485d; }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #087f78;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, h4, p { margin-top: 0; }
+    h1 { font-size: 42px; line-height: 1.02; letter-spacing: -1.4px; margin-bottom: 18px; }
+    h2 { font-size: 29px; line-height: 1.08; letter-spacing: -0.7px; margin-bottom: 12px; }
+    h3 { font-size: 15px; line-height: 1.2; margin-bottom: 7px; }
+    h4 { font-size: 11px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.7px; }
+    p { font-size: 10.5px; line-height: 1.5; margin-bottom: 10px; }
+    .lead { font-size: 14px; line-height: 1.48; max-width: 6.7in; }
+    .small { font-size: 8.5px; line-height: 1.45; }
+    .tiny { font-size: 7.5px; line-height: 1.35; }
+    .muted { color: var(--muted); }
+    .coral { color: var(--coral); }
+    .teal { color: #087f78; }
+    .dark .teal { color: var(--teal-soft); }
+    .strong { font-weight: 700; }
+    .rule { height: 1px; background: var(--line); margin: 14px 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .stack { display: grid; gap: 10px; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 13px 14px;
+    }
+    .dark .card { background: var(--navy-2); border-color: #244b60; }
+    .card.teal-card { border-top: 4px solid var(--teal); }
+    .card.coral-card { border-top: 4px solid var(--coral); }
+    .card.navy-card { border-top: 4px solid var(--navy-3); }
+    .dark .card.navy-card { border-top-color: #7fa3b5; }
+    .number {
+      display: inline-grid;
+      place-items: center;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: var(--teal);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .pill {
+      display: inline-block;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 3px 7px;
+      margin: 0 3px 4px 0;
+      font-size: 7.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .pill.fill { background: var(--teal); border-color: var(--teal); color: var(--navy); }
+    .pill.coral-fill { background: var(--coral); border-color: var(--coral); color: var(--navy); }
+    .label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 800; }
+    .dark .label { color: #9fb9c5; }
+
+    ul, ol { margin: 0; padding-left: 17px; }
+    li { font-size: 9.7px; line-height: 1.45; margin: 0 0 5px; }
+    .checks { list-style: none; padding: 0; }
+    .checks li { padding-left: 17px; position: relative; }
+    .checks li:before { content: "OK"; position: absolute; left: 0; top: 1px; font-size: 6px; font-weight: 900; color: #087f78; border: 1px solid #087f78; border-radius: 3px; padding: 1px 2px; }
+    .dark .checks li:before { color: var(--teal-soft); border-color: var(--teal-soft); }
+
+    .code {
+      background: #061521;
+      color: #d8f5f1;
+      border: 1px solid #1e4052;
+      border-radius: 10px;
+      padding: 10px 11px;
+      font-size: 8px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin: 7px 0 11px;
+    }
+    .code .prompt { color: var(--coral); }
+    .code .comment { color: #8ba8b6; }
+    .code .accent { color: var(--teal-soft); }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { background: var(--navy); color: white; text-align: left; font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; padding: 8px; }
+    td { color: var(--ink); border-bottom: 1px solid var(--line); padding: 8px; font-size: 8.5px; line-height: 1.35; vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    .table-shell { overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: white; }
+
+    .callout {
+      background: var(--pale);
+      border-left: 4px solid var(--teal);
+      border-radius: 0 10px 10px 0;
+      padding: 11px 13px;
+      margin: 10px 0;
+    }
+    .callout.warn { background: var(--pale-coral); border-color: var(--coral); }
+    .callout p:last-child { margin-bottom: 0; }
+
+    .footer {
+      position: absolute;
+      left: 0.58in;
+      right: 0.58in;
+      bottom: 0.25in;
+      height: 0.22in;
+      border-top: 1px solid var(--line);
+      padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5px;
+      color: var(--muted);
+    }
+    .page-no { font-weight: 800; color: var(--coral); }
+
+    .route-line { display: grid; grid-template-columns: 1.05fr 0.9fr 1.05fr; gap: 8px; align-items: center; margin: 8px 0; }
+    .route-box { border: 1px solid #31556a; border-radius: 10px; padding: 9px; background: var(--navy-2); }
+    .route-arrow { text-align: center; color: var(--teal-soft); font-size: 9px; font-weight: 800; }
+    .big-stat { font-size: 31px; line-height: 1; font-weight: 900; color: var(--coral); }
+    .model-name { font-size: 21px; font-weight: 800; line-height: 1; margin: 6px 0; }
+    .agent-icon { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: var(--teal); color: var(--navy); font-weight: 900; font-size: 10px; margin-bottom: 9px; }
+    .agent-icon.coral-bg { background: var(--coral); }
+    .stepbar { display: grid; grid-template-columns: repeat(4, 1fr); margin: 12px 0; }
+    .step { position: relative; padding: 24px 8px 0; text-align: center; font-size: 8px; }
+    .step:before { content: ""; position: absolute; top: 9px; left: 0; right: 0; height: 2px; background: #31556a; }
+    .step:first-child:before { left: 50%; }
+    .step:last-child:before { right: 50%; }
+    .step span { position: absolute; top: 1px; left: calc(50% - 9px); width: 18px; height: 18px; border-radius: 50%; background: var(--teal); color: var(--navy); display: grid; place-items: center; font-weight: 900; }
+
+    .cover-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.09;
+      background-image: linear-gradient(#7ef0e5 1px, transparent 1px), linear-gradient(90deg, #7ef0e5 1px, transparent 1px);
+      background-size: 26px 26px;
+      mask-image: linear-gradient(to bottom right, black, transparent 75%);
+    }
+    .orb { position: absolute; border-radius: 50%; filter: blur(0.1px); }
+    .orb.one { width: 260px; height: 260px; right: -95px; top: 85px; background: rgba(46, 211, 198, 0.18); border: 1px solid rgba(46, 211, 198, 0.5); }
+    .orb.two { width: 175px; height: 175px; left: -74px; bottom: 145px; background: rgba(255, 121, 109, 0.13); border: 1px solid rgba(255, 121, 109, 0.45); }
+    .title-lockup { position: relative; margin-top: 0.62in; width: 6.6in; }
+    .cover-sub { font-size: 16px; line-height: 1.45; color: #c3d4dc; max-width: 5.8in; }
+    .version { display: inline-block; background: var(--coral); color: var(--navy); border-radius: 999px; padding: 5px 10px; font-size: 9px; font-weight: 900; letter-spacing: 1px; margin-bottom: 14px; }
+    .cover-routing { position: relative; margin-top: 0.55in; }
+    .cover-note { margin-top: 23px; display: flex; gap: 9px; align-items: center; color: #9fb8c4; font-size: 9px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(46, 211, 198, 0.15); }
+
+    .link-list a { display: block; color: #087f78; text-decoration: underline; text-decoration-color: #9adbd5; text-underline-offset: 2px; overflow-wrap: anywhere; font-size: 8px; line-height: 1.45; margin-bottom: 7px; }
+    .dark .link-list a { color: var(--teal-soft); text-decoration-color: #397669; }
+  </style>
+</head>
+<body>
+
+  <section class="page dark">
+    <div class="cover-grid"></div><div class="orb one"></div><div class="orb two"></div>
+    <div class="title-lockup">
+      <div class="version">V2.0.0</div>
+      <p class="eyebrow">Claude Code Smart Orchestrator</p>
+      <h1>Put the right work<br>on the right model.</h1>
+      <p class="cover-sub">A practical, auditable four-agent routing kit for planning, deep reasoning, fast implementation, and independent review.</p>
+    </div>
+    <div class="cover-routing">
+      <div class="route-line">
+        <div class="route-box"><span class="label">Plan</span><br><strong>Architect</strong></div>
+        <div class="route-arrow">OPUS / HIGH</div>
+        <div class="route-box"><span class="label">Permission</span><br><strong>PLAN</strong></div>
+      </div>
+      <div class="route-line">
+        <div class="route-box"><span class="label">Reason</span><br><strong>Deep Reasoner</strong></div>
+        <div class="route-arrow">OPUS / XHIGH</div>
+        <div class="route-box"><span class="label">Permission</span><br><strong>PLAN</strong></div>
+      </div>
+      <div class="route-line">
+        <div class="route-box"><span class="label">Build</span><br><strong>Fast Worker</strong></div>
+        <div class="route-arrow">HAIKU / LOW</div>
+        <div class="route-box"><span class="label">Permission</span><br><strong>DEFAULT</strong></div>
+      </div>
+      <div class="route-line">
+        <div class="route-box"><span class="label">Review</span><br><strong>QA Reviewer</strong></div>
+        <div class="route-arrow">SONNET / HIGH</div>
+        <div class="route-box"><span class="label">Permission</span><br><strong>DEFAULT</strong></div>
+      </div>
+    </div>
+    <div class="cover-note"><span class="dot"></span>Configured targets are policy. Runtime traces are evidence. Verify both.</div>
+    <div class="footer"><span>Claude Code Smart Orchestrator</span><span class="page-no">01</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Start here</p>
+    <h2>What v2 fixes</h2>
+    <p class="lead">The first version described roles. Version 2 makes model routing explicit, tests the configuration defensively, and separates what is configured from what is actually observed at runtime.</p>
+    <div class="grid-2">
+      <div class="card teal-card"><div class="number">1</div><h3>Explicit model policy</h3><p>Every agent declares a model alias, effort level, permission mode, and limited tool set.</p></div>
+      <div class="card coral-card"><div class="number">2</div><h3>Deterministic invocation</h3><p>Use an explicit <code>@agent-name</code> mention when the test must call one named agent.</p></div>
+      <div class="card teal-card"><div class="number">3</div><h3>Honest runtime proof</h3><p>Static validation proves files. A captured trace shows which agent and model were observed for one run.</p></div>
+      <div class="card coral-card"><div class="number">4</div><h3>Windows-native workflow</h3><p>PowerShell instructions, safe backup steps, and both Bash and PowerShell tool availability where needed.</p></div>
+      <div class="card teal-card"><div class="number">5</div><h3>Stricter validation</h3><p>Recursive scope checks, strict YAML, exact paths, policy enforcement, and secret-pattern scanning.</p></div>
+      <div class="card coral-card"><div class="number">6</div><h3>Deliberate permissions</h3><p>Planning agents cannot edit. QA uses default mode so approved tests can run, while its prompt forbids intentional edits.</p></div>
+    </div>
+    <div class="callout warn">
+      <h3>No magic and no guaranteed savings</h3>
+      <p>Routing can improve the match between task and model. Actual quality, latency, and cost depend on prompts, project size, tool use, retries, provider behavior, and your plan. Measure your own workload.</p>
+    </div>
+    <div class="footer"><span>V2 fixes</span><span class="page-no">02</span></div>
+  </section>
+
+  <section class="page dark">
+    <p class="eyebrow">Architecture</p>
+    <h2>Four lanes, one accountable loop</h2>
+    <p class="lead muted">The coordinator remains responsible for decomposition, routing, context, acceptance criteria, and final integration. Agents do not recursively delegate.</p>
+    <div class="stepbar">
+      <div class="step"><span>1</span>Scope the task</div>
+      <div class="step"><span>2</span>Route a bounded packet</div>
+      <div class="step"><span>3</span>Verify the result</div>
+      <div class="step"><span>4</span>Integrate or retry</div>
+    </div>
+    <div class="grid-4">
+      <div class="card teal-card"><div class="agent-icon">AR</div><span class="label">Plan</span><h3>Architect</h3><p class="small muted">System shape, boundaries, tradeoffs, sequencing.</p><span class="pill fill">Opus</span><span class="pill">High</span></div>
+      <div class="card coral-card"><div class="agent-icon coral-bg">DR</div><span class="label">Reason</span><h3>Deep Reasoner</h3><p class="small muted">Ambiguity, root cause, hard decisions, risk.</p><span class="pill coral-fill">Opus</span><span class="pill">XHigh</span></div>
+      <div class="card teal-card"><div class="agent-icon">FW</div><span class="label">Build</span><h3>Fast Worker</h3><p class="small muted">Bounded edits, repetitive changes, quick checks.</p><span class="pill fill">Haiku</span><span class="pill">Low</span></div>
+      <div class="card coral-card"><div class="agent-icon coral-bg">QA</div><span class="label">Review</span><h3>QA Reviewer</h3><p class="small muted">Evidence-based review and exact tests.</p><span class="pill coral-fill">Sonnet</span><span class="pill">High</span></div>
+    </div>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <div>
+        <h3 class="teal">Coordinator duties</h3>
+        <ul class="checks">
+          <li>Choose the lane from task risk, not prestige.</li>
+          <li>Send only the context the agent needs.</li>
+          <li>Name allowed files and forbidden actions.</li>
+          <li>Define evidence and a stop condition.</li>
+          <li>Own integration and user-facing claims.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="coral">Hard boundaries</h3>
+        <ul>
+          <li>Architect and Deep Reasoner are read-only planners.</li>
+          <li>Fast Worker writes only inside the stated scope.</li>
+          <li>QA does not intentionally edit, but a test command can mutate artifacts.</li>
+          <li>QA shell access still requires user or session permission; host policy also matters.</li>
+          <li>Agent output is evidence to inspect, not authority to trust blindly.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Routing architecture</span><span class="page-no">03</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Routing matrix</p>
+    <h2>The configured targets</h2>
+    <p class="lead">These aliases express policy without pinning dated model IDs. Claude Code resolves an alias at runtime, so record the observed model in your trace.</p>
+    <div class="table-shell">
+      <table>
+        <thead><tr><th style="width:20%">Agent</th><th style="width:13%">Model</th><th style="width:12%">Effort</th><th style="width:14%">Mode</th><th style="width:19%">Tools</th><th>Use when</th></tr></thead>
+        <tbody>
+          <tr><td><strong>architect</strong></td><td>opus</td><td>high</td><td>plan</td><td>Read, Glob, Grep</td><td>Architecture, interfaces, sequence, tradeoffs.</td></tr>
+          <tr><td><strong>deep-reasoner</strong></td><td>opus</td><td>xhigh</td><td>plan</td><td>Read, Glob, Grep</td><td>Hard ambiguity, root cause, high-impact reasoning.</td></tr>
+          <tr><td><strong>fast-worker</strong></td><td>haiku</td><td>low</td><td>default</td><td>Read, Glob, Grep, Edit, Write, Bash, PowerShell</td><td>Clear, bounded implementation with named paths.</td></tr>
+          <tr><td><strong>qa-reviewer</strong></td><td>sonnet</td><td>high</td><td>default</td><td>Read, Glob, Grep, Bash, PowerShell</td><td>Independent review and exact user-provided tests.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div class="card teal-card">
+        <h3>Prefer the smallest sufficient lane</h3>
+        <ol>
+          <li>Is the task fully specified and low risk? Try Fast Worker.</li>
+          <li>Does it need structure or tradeoff analysis? Use Architect.</li>
+          <li>Is the uncertainty itself the problem? Use Deep Reasoner.</li>
+          <li>Is the work complete and ready to challenge? Use QA Reviewer.</li>
+        </ol>
+      </div>
+      <div class="card coral-card">
+        <h3>Escalate on evidence</h3>
+        <ol>
+          <li>Stop a worker when scope is ambiguous.</li>
+          <li>Escalate when constraints conflict.</li>
+          <li>Do not turn retries into an unbounded loop.</li>
+          <li>Return to the coordinator for a new decision.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="callout"><p><strong>Configured target:</strong> the model alias and effort written in an agent file. <strong>Observed route:</strong> the agent and model reported by one captured runtime trace. Neither is a cryptographic guarantee about future runs.</p></div>
+    <div class="footer"><span>Configured routing policy</span><span class="page-no">04</span></div>
+  </section>
+
+  <section class="page dark">
+    <p class="eyebrow">Agent playbooks</p>
+    <h2>What each lane should return</h2>
+    <div class="grid-2">
+      <div class="card teal-card">
+        <span class="label">01 / Architect</span><div class="model-name">OPUS</div><span class="pill fill">High effort</span><span class="pill">Plan mode</span>
+        <p class="small muted">Return a decision-ready plan with boundaries, alternatives, risks, dependency order, and acceptance criteria. Do not edit files or run shell commands.</p>
+        <h4>Good packet</h4><p class="small">"Design the auth boundary. Read only these three files. Compare two designs. Return a sequence and five acceptance checks."</p>
+      </div>
+      <div class="card coral-card">
+        <span class="label">02 / Deep Reasoner</span><div class="model-name">OPUS</div><span class="pill coral-fill">XHigh effort</span><span class="pill">Plan mode</span>
+        <p class="small muted">Resolve the hardest uncertainty. State assumptions, test competing explanations, identify disconfirming evidence, and recommend the next decision.</p>
+        <h4>Good packet</h4><p class="small">"Explain the intermittent race. Read the trace and scheduler only. Rank hypotheses and propose the smallest discriminating test."</p>
+      </div>
+      <div class="card teal-card">
+        <span class="label">03 / Fast Worker</span><div class="model-name">HAIKU</div><span class="pill fill">Low effort</span><span class="pill">Default mode</span>
+        <p class="small muted">Make the named change in allowed paths, run exact checks, summarize the diff, and stop on missing scope or a consequential decision.</p>
+        <h4>Good packet</h4><p class="small">"Rename this flag in two files. Do not touch generated code. Run the named unit test. Report changed paths."</p>
+      </div>
+      <div class="card coral-card">
+        <span class="label">04 / QA Reviewer</span><div class="model-name">SONNET</div><span class="pill coral-fill">High effort</span><span class="pill">Default mode</span>
+        <p class="small muted">Inspect independently. Run only the exact command if user or session permission allows. Do not intentionally edit; note that test commands can mutate artifacts.</p>
+        <h4>Good packet</h4><p class="small">"Review this diff against three criteria. Run exactly: python -m unittest -q. Do not edit. Report denied or unavailable tools."</p>
+      </div>
+    </div>
+    <div class="callout warn" style="background:#183247;color:#d9e7ed">
+      <p><strong class="coral">Why effort differs:</strong> effort is a policy signal, not a quality promise. Low effort suits bounded execution. High and xhigh are reserved for planning, ambiguity, and adversarial review where additional reasoning can justify the latency.</p>
+    </div>
+    <div class="footer"><span>Agent playbooks</span><span class="page-no">05</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Testing</p>
+    <h2>Deterministic invocation vs automatic routing</h2>
+    <div class="grid-2">
+      <div class="card teal-card">
+        <span class="label">Test the named agent</span>
+        <h3>Use an explicit @mention</h3>
+        <p>When the question is "does this exact agent work?", explicitly invoke it in Claude Code. Natural-language hints may be ignored or routed differently.</p>
+        <div class="code"><span class="prompt">&gt;</span> Use <span class="accent">@agent-architect</span> to inspect the project structure. Return three risks. Do not edit.</div>
+        <ul class="checks">
+          <li>Named agent tool call appears.</li>
+          <li>Agent result completes successfully.</li>
+          <li>Observed model matches the expected family.</li>
+          <li>No per-call model override changed the route.</li>
+        </ul>
+      </div>
+      <div class="card coral-card">
+        <span class="label">Evaluate the router</span>
+        <h3>Use unlabeled real tasks</h3>
+        <p>When the question is "does the coordinator choose well?", omit the agent name. Run a labeled evaluation set and compare the observed choice to your expected lane.</p>
+        <div class="code"><span class="prompt">&gt;</span> Propose two architectures for durable job retries. Compare failure modes. Do not edit.</div>
+        <ul>
+          <li>Define the expected lane before the run.</li>
+          <li>Repeat to measure route stability.</li>
+          <li>Score both routing and answer quality.</li>
+          <li>Record non-routing, timeout, and retry cases.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="table-shell" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Question</th><th>Correct test</th><th>Useful evidence</th><th>Not sufficient</th></tr></thead>
+        <tbody>
+          <tr><td>Is the file valid?</td><td>Static validator</td><td>Strict schema and policy pass</td><td>Agent prose alone</td></tr>
+          <tr><td>Can this agent run?</td><td>Explicit @mention</td><td>Successful Agent call and result</td><td>"Please use..." prose</td></tr>
+          <tr><td>Which model ran?</td><td>Stream JSON trace</td><td>Assistant model event associated with the agent</td><td>Configured alias alone</td></tr>
+          <tr><td>Does the router choose well?</td><td>Blind task suite</td><td>Route accuracy, quality, latency, failure rate</td><td>One cherry-picked demo</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer"><span>Deterministic and automatic tests</span><span class="page-no">06</span></div>
+  </section>
+
+  <section class="page dark">
+    <p class="eyebrow">Evaluation design</p>
+    <h2>Measure distribution on a real project</h2>
+    <p class="lead muted">A router is useful only when it sends representative work to the right lane and the integrated result holds up. Use a pilot that requires architecture, implementation, and review.</p>
+    <div class="grid-3">
+      <div class="card"><div class="big-stat">12+</div><h3>Tasks</h3><p class="small muted">At least three representative tasks per expected lane.</p></div>
+      <div class="card"><div class="big-stat">3x</div><h3>Repeats</h3><p class="small muted">Repeat automatic prompts to detect route instability.</p></div>
+      <div class="card"><div class="big-stat">2</div><h3>Scores</h3><p class="small muted">Score route choice separately from answer quality.</p></div>
+    </div>
+    <div class="table-shell" style="margin-top:14px">
+      <table>
+        <thead><tr><th style="width:25%">Metric</th><th>Definition</th><th style="width:22%">Record</th></tr></thead>
+        <tbody>
+          <tr><td>Route accuracy</td><td>Observed lane matches the label assigned before execution.</td><td>Correct / total</td></tr>
+          <tr><td>Completion quality</td><td>Acceptance criteria passed without coordinator repair.</td><td>0-3 rubric</td></tr>
+          <tr><td>Boundary compliance</td><td>Agent stayed inside paths, tools, and stop conditions.</td><td>Pass / fail</td></tr>
+          <tr><td>Latency</td><td>Wall time from call to completed agent result.</td><td>Seconds</td></tr>
+          <tr><td>Failure behavior</td><td>Denied tools, malformed output, timeout, or unbounded retry.</td><td>Category</td></tr>
+          <tr><td>Usage evidence</td><td>Provider-reported usage or plan-level observations, if available.</td><td>Raw record</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div>
+        <h3 class="teal">Pilot shape</h3>
+        <ol>
+          <li>Architect proposes the system plan.</li>
+          <li>Deep Reasoner resolves the hardest uncertainty.</li>
+          <li>Fast Worker implements bounded slices.</li>
+          <li>QA Reviewer challenges each completed slice.</li>
+          <li>Coordinator integrates and records outcomes.</li>
+        </ol>
+      </div>
+      <div>
+        <h3 class="coral">Interpret carefully</h3>
+        <ul>
+          <li>Do not infer savings from model labels.</li>
+          <li>Do not compare unequal prompts or acceptance bars.</li>
+          <li>Separate tool failures from model failures.</li>
+          <li>Securely retain only the evidence needed for rechecking.</li>
+          <li>Publish limitations with any benchmark.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Real-project evaluation</span><span class="page-no">07</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Installation</p>
+    <h2>Merge safely on Windows</h2>
+    <p class="lead">The starter is project-scoped. Back up existing files, compare before copying, and preserve project-specific instructions. Do not replace a working <code>CLAUDE.md</code> blindly.</p>
+    <div class="grid-2">
+      <div>
+        <h3>1. Validate the kit</h3>
+        <div class="code"><span class="prompt">PS&gt;</span> python -I .\starter\scripts\validate_kit.py</div>
+        <h3>2. Back up project configuration</h3>
+        <div class="code"><span class="prompt">PS&gt;</span> $stamp = Get-Date -Format yyyyMMdd-HHmmss
+<span class="prompt">PS&gt;</span> Copy-Item .\.claude ".\.claude.backup-$stamp" -Recurse -ErrorAction SilentlyContinue
+<span class="prompt">PS&gt;</span> Copy-Item .\CLAUDE.md ".\CLAUDE.md.backup-$stamp" -ErrorAction SilentlyContinue</div>
+        <h3>3. Merge agents</h3>
+        <div class="code"><span class="prompt">PS&gt;</span> New-Item .\.claude\agents -ItemType Directory -Force
+<span class="prompt">PS&gt;</span> Copy-Item .\starter\.claude\agents\*.md .\.claude\agents\</div>
+      </div>
+      <div>
+        <h3>4. Merge guidance</h3>
+        <p>Read both <code>CLAUDE.md</code> files. Copy only the routing sections that fit the project. Existing security, build, and test instructions remain authoritative.</p>
+        <h3>5. Review before running</h3>
+        <div class="code"><span class="prompt">PS&gt;</span> Get-ChildItem .\.claude\agents
+<span class="prompt">PS&gt;</span> git diff -- .claude CLAUDE.md</div>
+        <h3>6. Uninstall or roll back</h3>
+        <p>Restore the timestamped backup, or remove only the four shipped agent files. Never recursively delete a computed path without checking the resolved target.</p>
+        <div class="callout warn">
+          <h3>Permission reminder</h3>
+          <p>Frontmatter is one layer. Claude Code permission settings, enterprise policy, hooks, shell behavior, and the operating system can be stricter or interact in surprising ways. Test in a disposable repository first.</p>
+        </div>
+        <p class="small"><strong>PowerShell preview:</strong> with Git Bash installed, set <code>$env:CLAUDE_CODE_USE_POWERSHELL_TOOL = '1'</code> if the tool is unavailable. Profiles are not loaded and Windows sandboxing is not provided; confirm current official tool guidance.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Safe install, merge, and rollback</span><span class="page-no">08</span></div>
+  </section>
+
+  <section class="page dark">
+    <p class="eyebrow">Delegation packet</p>
+    <h2>Give every agent a bounded contract</h2>
+    <p class="lead muted">Better routing cannot rescue a vague handoff. A compact packet reduces context waste and makes success auditable.</p>
+    <div class="grid-2">
+      <div class="card teal-card">
+        <h3>Packet template</h3>
+        <div class="code"><span class="accent">GOAL</span>
+One observable outcome.
+
+<span class="accent">CONTEXT</span>
+Only facts and files needed.
+
+<span class="accent">ALLOWED SCOPE</span>
+Exact paths and permitted actions.
+
+<span class="accent">CONSTRAINTS</span>
+Compatibility, security, time, style.
+
+<span class="accent">EVIDENCE</span>
+Exact checks or review criteria.
+
+<span class="accent">RETURN</span>
+Required output format.
+
+<span class="accent">STOP</span>
+Conditions that require escalation.</div>
+      </div>
+      <div class="stack">
+        <div class="card coral-card"><h3>Architect packet</h3><p class="small">"Design a migration from local JSON to SQLite. Read three named modules. Preserve the public API. Return two alternatives, a sequence, risks, and acceptance checks. Do not edit."</p></div>
+        <div class="card teal-card"><h3>Fast Worker packet</h3><p class="small">"Implement step one in <code>src/store.py</code> and its tests only. No dependency changes. Run the exact unit-test command. Stop if the existing interface is inconsistent."</p></div>
+        <div class="card coral-card"><h3>QA packet</h3><p class="small">"Review the resulting diff for data loss, compatibility, and test coverage. Run exactly the provided command if allowed. Do not edit. Return severity, path, and evidence."</p></div>
+      </div>
+    </div>
+    <div class="callout warn" style="background:#183247;color:#d9e7ed">
+      <p><strong class="coral">Anti-pattern:</strong> "Build the whole thing and make it production ready." It hides decisions, creates an unbounded write surface, and makes failures hard to attribute. Split the work until every packet has a visible finish line.</p>
+    </div>
+    <div class="footer"><span>Delegation packet</span><span class="page-no">09</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Runtime evidence</p>
+    <h2>Capture what actually ran</h2>
+    <p class="lead">A frontmatter file can be correct while a run is misrouted, overridden, malformed, or incomplete. Capture stream JSON for a small explicit probe and validate the evidence separately.</p>
+    <div class="grid-2">
+      <div>
+        <h3>Evidence ladder</h3>
+        <div class="card teal-card"><span class="label">Level 1</span><h3>Static policy</h3><p class="small">Exact files, strict YAML, allowed fields, expected model and effort, permitted tools.</p></div>
+        <div class="card coral-card" style="margin-top:9px"><span class="label">Level 2</span><h3>Invocation evidence</h3><p class="small">An Agent tool call names the expected subagent and completes successfully.</p></div>
+        <div class="card teal-card" style="margin-top:9px"><span class="label">Level 3</span><h3>Model evidence</h3><p class="small">The associated assistant event reports the expected model family or alias.</p></div>
+        <div class="card coral-card" style="margin-top:9px"><span class="label">Level 4</span><h3>Outcome evidence</h3><p class="small">The work passes its acceptance checks and respects boundaries.</p></div>
+      </div>
+      <div>
+        <h3>Capture an explicit probe</h3>
+        <div class="code"><span class="prompt">PS&gt;</span> $trace = Join-Path $env:TEMP "ccso-architect-proof.jsonl"
+<span class="prompt">PS&gt;</span> claude -p "Use @agent-architect to inspect the project. Return one risk. Do not edit." `
+  --output-format stream-json `
+  --verbose `
+  --no-session-persistence |
+  Set-Content -LiteralPath $trace -Encoding utf8</div>
+        <h3>Then verify</h3>
+        <ul class="checks">
+          <li>The JSONL is complete and parseable.</li>
+          <li>Exactly the expected agent was invoked.</li>
+          <li>One completed lifecycle links to a non-error Agent result.</li>
+          <li>The observed model matches the expected family.</li>
+          <li>No ambiguous second invocation confuses attribution.</li>
+        </ul>
+        <div class="callout warn"><p><strong>Observed, not proven forever.</strong> A trace describes one execution in one environment. It does not attest effort. Keep traces outside the repository, redact before sharing, and never commit them.</p></div>
+      </div>
+    </div>
+    <div class="footer"><span>Runtime trace evidence</span><span class="page-no">10</span></div>
+  </section>
+
+  <section class="page dark">
+    <p class="eyebrow">Validation and security</p>
+    <h2>Fail closed before you trust the kit</h2>
+    <p class="lead muted">Agent files are executable configuration and prompt material. Review them like code. The v2 validator checks the packaged policy recursively instead of assuming every relevant file is at the top level.</p>
+    <div class="grid-2">
+      <div class="card teal-card">
+        <h3>Static validation gates</h3>
+        <ul class="checks">
+          <li>Expected agent paths exist exactly once.</li>
+          <li>No shadow agent appears in nested scope.</li>
+          <li>YAML rejects duplicate keys and wrong types.</li>
+          <li>Unknown frontmatter fields fail validation.</li>
+          <li>Model, effort, mode, and tools match policy.</li>
+          <li>Secret-like content is scanned recursively.</li>
+          <li>Unexpected executable hooks are rejected.</li>
+        </ul>
+      </div>
+      <div class="card coral-card">
+        <h3>Runtime controls still matter</h3>
+        <ul>
+          <li>Review global, project, and managed settings.</li>
+          <li>Confirm user or session permission before QA shell tests.</li>
+          <li>Treat test commands as potentially mutating artifacts.</li>
+          <li>Keep secrets out of prompts, traces, and repositories.</li>
+          <li>Use disposable repositories for first runs.</li>
+          <li>Inspect every write before committing.</li>
+          <li>Rotate any credential exposed in logs or transcripts.</li>
+        </ul>
+      </div>
+    </div>
+    <h3 style="margin-top:14px">Run the local gates</h3>
+    <div class="code"><span class="prompt">PS&gt;</span> python -I .\starter\scripts\validate_kit.py
+<span class="prompt">PS&gt;</span> python -m unittest discover -s .\starter\tests -v
+<span class="prompt">PS&gt;</span> git diff --check</div>
+    <div class="table-shell">
+      <table>
+        <thead><tr><th>Threat</th><th>Control</th><th>Residual risk</th></tr></thead>
+        <tbody>
+          <tr><td>Shadow agent file</td><td>Recursive exact-path allowlist</td><td>Other config scopes outside the kit</td></tr>
+          <tr><td>Malformed or duplicate YAML</td><td>Strict typed loader</td><td>Runtime schema changes</td></tr>
+          <tr><td>Unexpected shell behavior</td><td>Minimal tools and exact commands</td><td>Host policy and command side effects</td></tr>
+          <tr><td>Secret in archive</td><td>Recursive pattern scan</td><td>Novel formats and false negatives</td></tr>
+          <tr><td>Misleading routing claim</td><td>Static plus observed evidence labels</td><td>Future runtime variation</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer"><span>Validation and security</span><span class="page-no">11</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Operating loop</p>
+    <h2>Build a real project in reviewable slices</h2>
+    <p class="lead">Use the kit on work that exercises every lane. A planning-only demo cannot validate implementation distribution or the handoff between worker and reviewer.</p>
+    <div class="grid-2">
+      <div class="stack">
+        <div class="card teal-card"><span class="label">Phase A</span><h3>System framing</h3><p class="small">Architect defines boundaries, data flow, delivery slices, and acceptance criteria. Coordinator approves or revises.</p></div>
+        <div class="card coral-card"><span class="label">Phase B</span><h3>Uncertainty burn-down</h3><p class="small">Deep Reasoner investigates the hardest open question and proposes a discriminating experiment.</p></div>
+        <div class="card teal-card"><span class="label">Phase C</span><h3>Bounded construction</h3><p class="small">Fast Worker implements one narrow slice with named paths and an exact check.</p></div>
+        <div class="card coral-card"><span class="label">Phase D</span><h3>Independent challenge</h3><p class="small">QA Reviewer tests the slice and reports evidence without intentional edits; test commands may still mutate artifacts.</p></div>
+      </div>
+      <div>
+        <h3>Coordinator log</h3>
+        <div class="table-shell">
+          <table>
+            <thead><tr><th>Field</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>Task ID</td><td>API-04</td></tr>
+              <tr><td>Expected route</td><td>Fast Worker</td></tr>
+              <tr><td>Observed agent</td><td>fast-worker</td></tr>
+              <tr><td>Observed model</td><td>Recorded from trace</td></tr>
+              <tr><td>Acceptance</td><td>4 of 4 passed</td></tr>
+              <tr><td>Boundary</td><td>Pass</td></tr>
+              <tr><td>Retry</td><td>None</td></tr>
+              <tr><td>Notes</td><td>One denied tool, no impact</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout"><h3>Ship criterion</h3><p>The integrated project, not a single agent response, must pass the project test suite and human review. Router metrics explain the process; they do not replace product quality.</p></div>
+        <div class="callout warn"><h3>Stop criterion</h3><p>Pause if agents repeatedly misroute, cross write boundaries, produce untraceable results, or need coordinator repair that outweighs the value of delegation.</p></div>
+      </div>
+    </div>
+    <div class="footer"><span>Real-project operating loop</span><span class="page-no">12</span></div>
+  </section>
+
+  <section class="page dark">
+    <p class="eyebrow">Troubleshooting</p>
+    <h2>When the route does not behave</h2>
+    <div class="table-shell">
+      <table>
+        <thead><tr><th style="width:27%">Symptom</th><th style="width:32%">Likely cause</th><th>Next check</th></tr></thead>
+        <tbody>
+          <tr><td>Named agent never runs</td><td>Natural-language request, discovery scope, or malformed frontmatter.</td><td>Use an explicit @mention; run strict validation; inspect project scope.</td></tr>
+          <tr><td>Wrong model appears</td><td>Alias resolution, per-call override, settings, or stale agent definition.</td><td>Inspect the Agent input and assistant model events; confirm exact file loaded.</td></tr>
+          <tr><td>QA command is denied</td><td>User, session, or higher-priority permission policy blocks shell use.</td><td>Report the denial. Do not retry with command variants. Run the check in the coordinator if authorized.</td></tr>
+          <tr><td>PowerShell tool unavailable</td><td>CLI version, platform, or agent tool declaration mismatch.</td><td>Check Claude Code version and official PowerShell tool docs.</td></tr>
+          <tr><td>Worker edits too much</td><td>Packet did not name allowed paths or stop conditions.</td><td>Revert only with authorization; narrow the packet and rerun in a disposable branch.</td></tr>
+          <tr><td>Validator passes a rogue file</td><td>Old validator or wrong working directory.</td><td>Use v2, confirm recursive scan root, and run adversarial fixtures.</td></tr>
+          <tr><td>Trace verifier is inconclusive</td><td>Malformed, incomplete, or multiple-agent trace.</td><td>Fail closed and capture a fresh one-agent probe.</td></tr>
+          <tr><td>Results vary run to run</td><td>Automatic routing is probabilistic or task label is ambiguous.</td><td>Repeat the evaluation; improve task taxonomy; use @mention for deterministic agent tests.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid-2" style="margin-top:15px">
+      <div>
+        <h3 class="teal">Windows checklist</h3>
+        <ul class="checks">
+          <li>Run from the intended project root.</li>
+          <li>Use quoted paths when folders contain spaces.</li>
+          <li>Prefer PowerShell-native file operations.</li>
+          <li>Inspect resolved targets before recursive actions.</li>
+          <li>Record CLI and kit versions with evidence.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="coral">A clean bug report includes</h3>
+        <ul>
+          <li>Minimal redacted reproduction.</li>
+          <li>Expected and observed agent.</li>
+          <li>Expected and observed model family.</li>
+          <li>Claude Code and kit versions.</li>
+          <li>Static validator output and trace-verifier outcome.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Troubleshooting</span><span class="page-no">13</span></div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">Reference</p>
+    <h2>Launch checklist, docs, and credits</h2>
+    <div class="grid-2">
+      <div>
+        <h3>Before the first run</h3>
+        <ul class="checks">
+          <li>Read README-FIRST.md and starter/SETUP.md.</li>
+          <li>Validate the untouched kit.</li>
+          <li>Back up existing project instructions.</li>
+          <li>Merge agent files and guidance deliberately.</li>
+          <li>Run explicit one-agent probes.</li>
+          <li>Review traces for observed routing.</li>
+          <li>Start the real-project evaluation log.</li>
+          <li>Keep claims limited to collected evidence.</li>
+        </ul>
+        <div class="callout warn"><h3>Visual guide status</h3><p>This guide explains the policy and workflow. It is not runtime evidence. Use the shipped validator, trace verifier, and your own project acceptance tests.</p></div>
+        <h3>License</h3>
+        <p>MIT License. See the packaged LICENSE file for the complete terms.</p>
+        <h3>Credits</h3>
+        <p><strong>Built and maintained by Jeff J Hunter.</strong><br>With appreciation to Matt Farmer for the original model-routing idea and public write-up that inspired this direction.</p>
+      </div>
+      <div>
+        <h3>Official Claude Code references</h3>
+        <div class="link-list">
+          <a href="https://code.claude.com/docs/en/sub-agents">Subagents overview<br>https://code.claude.com/docs/en/sub-agents</a>
+          <a href="https://code.claude.com/docs/en/sub-agents#choose-a-model">Choose a model<br>https://code.claude.com/docs/en/sub-agents#choose-a-model</a>
+          <a href="https://code.claude.com/docs/en/sub-agents#invoke-subagents-explicitly">Invoke subagents explicitly<br>https://code.claude.com/docs/en/sub-agents#invoke-subagents-explicitly</a>
+          <a href="https://code.claude.com/docs/en/sub-agents#permission-modes">Permission modes<br>https://code.claude.com/docs/en/sub-agents#permission-modes</a>
+          <a href="https://code.claude.com/docs/en/model-config">Model configuration and overrides<br>https://code.claude.com/docs/en/model-config</a>
+          <a href="https://code.claude.com/docs/en/tools-reference#powershell-tool">PowerShell tool<br>https://code.claude.com/docs/en/tools-reference#powershell-tool</a>
+        </div>
+        <h3 style="margin-top:14px">Inspiration</h3>
+        <div class="link-list">
+          <a href="https://mattfarmer.ai/codex-model-routing">Matt Farmer - Codex model routing<br>https://mattfarmer.ai/codex-model-routing</a>
+        </div>
+        <div class="card teal-card" style="margin-top:15px">
+          <span class="label">Version</span>
+          <div class="model-name">2.0.0</div>
+          <p class="small">A model-routing policy, validation harness, and evidence workflow for Claude Code project agents.</p>
+          <span class="pill fill">Explicit</span><span class="pill">Auditable</span><span class="pill">Portable</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>References and credits</span><span class="page-no">14</span></div>
+  </section>
+
+</body>
+</html>

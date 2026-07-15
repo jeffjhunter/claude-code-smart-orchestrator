@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2000" viewBox="0 0 1600 2000" role="img" aria-labelledby="title desc">
+  <title id="title">Claude Code Smart Orchestrator v2 model-routing infographic</title>
+  <desc id="desc">Four configured Claude Code subagent routes with models, effort, permissions, workflow, and verification guidance.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071a2b"/>
+      <stop offset="1" stop-color="#0d293d"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#4b8196" stroke-opacity="0.12" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.22"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2ed3c6"/>
+    </marker>
+    <style>
+      .sans { font-family: "Segoe UI", Arial, sans-serif; }
+      .mono { font-family: Consolas, "Courier New", monospace; }
+      .eyebrow { font-size: 24px; font-weight: 800; letter-spacing: 5px; fill: #8ceae3; }
+      .headline { font-size: 72px; font-weight: 850; letter-spacing: -2px; fill: #ffffff; }
+      .subhead { font-size: 28px; font-weight: 450; fill: #b9cbd4; }
+      .section { font-size: 34px; font-weight: 800; fill: #ffffff; }
+      .card-title { font-size: 29px; font-weight: 800; fill: #ffffff; }
+      .model { font-size: 48px; font-weight: 900; fill: #ffffff; }
+      .label { font-size: 18px; font-weight: 800; letter-spacing: 2px; fill: #9fb9c5; }
+      .body { font-size: 21px; font-weight: 450; fill: #c9d8df; }
+      .small { font-size: 18px; font-weight: 500; fill: #a9c0cb; }
+      .pill-text { font-size: 17px; font-weight: 850; letter-spacing: 1px; fill: #071a2b; }
+      .dark-text { fill: #071a2b; }
+      .teal-text { fill: #8ceae3; }
+      .coral-text { fill: #ff9b92; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="2000" fill="url(#bg)"/>
+  <rect width="1600" height="2000" fill="url(#grid)"/>
+  <circle cx="1535" cy="165" r="300" fill="#2ed3c6" fill-opacity="0.08" stroke="#2ed3c6" stroke-opacity="0.25"/>
+  <circle cx="20" cy="1860" r="250" fill="#ff796d" fill-opacity="0.08" stroke="#ff796d" stroke-opacity="0.22"/>
+
+  <g class="sans">
+    <rect x="90" y="70" width="148" height="48" rx="24" fill="#ff796d"/>
+    <text x="164" y="102" text-anchor="middle" class="pill-text">V2.0.0</text>
+    <text x="90" y="167" class="eyebrow">CLAUDE CODE SMART ORCHESTRATOR</text>
+    <text x="90" y="258" class="headline">Route work by job,</text>
+    <text x="90" y="335" class="headline">then verify the route.</text>
+    <text x="90" y="390" class="subhead">Four explicit configured targets. One accountable coordinator.</text>
+
+    <text x="90" y="470" class="section">Configured agent routes</text>
+    <text x="1510" y="470" text-anchor="end" class="small">Policy targets - verify runtime separately</text>
+
+    <g filter="url(#shadow)">
+      <rect x="90" y="505" width="342" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
+      <rect x="456" y="505" width="342" height="410" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="4"/>
+      <rect x="822" y="505" width="342" height="410" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="4"/>
+      <rect x="1188" y="505" width="322" height="410" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="4"/>
+    </g>
+
+    <g transform="translate(120 540)">
+      <rect width="58" height="58" rx="14" fill="#2ed3c6"/><text x="29" y="38" text-anchor="middle" class="pill-text">AR</text>
+      <text y="95" class="label">PLAN</text><text y="140" class="card-title">Architect</text>
+      <text y="205" class="model">OPUS</text>
+      <rect y="228" width="94" height="38" rx="19" fill="#2ed3c6"/><text x="47" y="253" text-anchor="middle" class="pill-text">HIGH</text>
+      <rect x="104" y="228" width="94" height="38" rx="19" fill="none" stroke="#8ceae3"/><text x="151" y="253" text-anchor="middle" class="pill-text teal-text">PLAN</text>
+      <text y="306" class="body">Architecture, boundaries,</text><text y="335" class="body">tradeoffs, sequencing.</text>
+      <text y="358" class="small">Read / Glob / Grep</text>
+    </g>
+    <g transform="translate(486 540)">
+      <rect width="58" height="58" rx="14" fill="#ff796d"/><text x="29" y="38" text-anchor="middle" class="pill-text">DR</text>
+      <text y="95" class="label">REASON</text><text y="140" class="card-title">Deep Reasoner</text>
+      <text y="205" class="model">OPUS</text>
+      <rect y="228" width="108" height="38" rx="19" fill="#ff796d"/><text x="54" y="253" text-anchor="middle" class="pill-text">XHIGH</text>
+      <rect x="118" y="228" width="94" height="38" rx="19" fill="none" stroke="#ff9b92"/><text x="165" y="253" text-anchor="middle" class="pill-text coral-text">PLAN</text>
+      <text y="306" class="body">Ambiguity, root cause,</text><text y="335" class="body">high-impact decisions.</text>
+      <text y="358" class="small">Read / Glob / Grep</text>
+    </g>
+    <g transform="translate(852 540)">
+      <rect width="58" height="58" rx="14" fill="#2ed3c6"/><text x="29" y="38" text-anchor="middle" class="pill-text">FW</text>
+      <text y="95" class="label">BUILD</text><text y="140" class="card-title">Fast Worker</text>
+      <text y="205" class="model">HAIKU</text>
+      <rect y="228" width="86" height="38" rx="19" fill="#2ed3c6"/><text x="43" y="253" text-anchor="middle" class="pill-text">LOW</text>
+      <rect x="96" y="228" width="122" height="38" rx="19" fill="none" stroke="#8ceae3"/><text x="157" y="253" text-anchor="middle" class="pill-text teal-text">DEFAULT</text>
+      <text y="306" class="body">Bounded edits and</text><text y="335" class="body">exact checks.</text>
+      <text y="358" class="small">Read / Write / Shell</text>
+    </g>
+    <g transform="translate(1218 540)">
+      <rect width="58" height="58" rx="14" fill="#ff796d"/><text x="29" y="38" text-anchor="middle" class="pill-text">QA</text>
+      <text y="95" class="label">REVIEW</text><text y="140" class="card-title">QA Reviewer</text>
+      <text y="205" class="model">SONNET</text>
+      <rect y="228" width="94" height="38" rx="19" fill="#ff796d"/><text x="47" y="253" text-anchor="middle" class="pill-text">HIGH</text>
+      <rect x="104" y="228" width="122" height="38" rx="19" fill="none" stroke="#ff9b92"/><text x="165" y="253" text-anchor="middle" class="pill-text coral-text">DEFAULT</text>
+      <text y="306" class="body">Independent review and</text><text y="335" class="body">exact user tests.</text>
+      <text y="358" class="small">Read / Search / Shell</text>
+    </g>
+
+    <text x="90" y="1000" class="section">The operating loop</text>
+    <g>
+      <rect x="90" y="1035" width="310" height="140" rx="22" fill="#f7f3ea"/>
+      <text x="120" y="1080" class="label dark-text">01</text><text x="120" y="1122" class="card-title dark-text">Scope</text><text x="120" y="1153" class="small dark-text">Goal, paths, limits, proof.</text>
+      <line x1="405" y1="1105" x2="460" y2="1105" stroke="#2ed3c6" stroke-width="5" marker-end="url(#arrow)"/>
+      <rect x="470" y="1035" width="310" height="140" rx="22" fill="#f7f3ea"/>
+      <text x="500" y="1080" class="label dark-text">02</text><text x="500" y="1122" class="card-title dark-text">Route</text><text x="500" y="1153" class="small dark-text">Choose the sufficient lane.</text>
+      <line x1="785" y1="1105" x2="840" y2="1105" stroke="#2ed3c6" stroke-width="5" marker-end="url(#arrow)"/>
+      <rect x="850" y="1035" width="310" height="140" rx="22" fill="#f7f3ea"/>
+      <text x="880" y="1080" class="label dark-text">03</text><text x="880" y="1122" class="card-title dark-text">Verify</text><text x="880" y="1153" class="small dark-text">Trace plus acceptance checks.</text>
+      <line x1="1165" y1="1105" x2="1220" y2="1105" stroke="#2ed3c6" stroke-width="5" marker-end="url(#arrow)"/>
+      <rect x="1230" y="1035" width="280" height="140" rx="22" fill="#f7f3ea"/>
+      <text x="1260" y="1080" class="label dark-text">04</text><text x="1260" y="1122" class="card-title dark-text">Integrate</text><text x="1260" y="1153" class="small dark-text">Coordinator owns the result.</text>
+    </g>
+
+    <text x="90" y="1265" class="section">Test the right question</text>
+    <g filter="url(#shadow)">
+      <rect x="90" y="1300" width="690" height="330" rx="26" fill="#0f3045" stroke="#2ed3c6" stroke-width="3"/>
+      <rect x="820" y="1300" width="690" height="330" rx="26" fill="#0f3045" stroke="#ff796d" stroke-width="3"/>
+    </g>
+    <g transform="translate(125 1340)">
+      <text class="label">DETERMINISTIC AGENT TEST</text>
+      <text y="48" class="card-title">Use an explicit @mention</text>
+      <rect y="76" width="620" height="80" rx="14" fill="#061521"/>
+      <text x="20" y="111" class="mono small coral-text">&gt; Use @agent-architect to inspect...</text>
+      <text x="20" y="140" class="mono small teal-text">Return risks. Do not edit.</text>
+      <text y="205" class="body">Checks one named agent and its observed model.</text>
+      <text y="245" class="small">Require Agent call + successful result + model event.</text>
+    </g>
+    <g transform="translate(855 1340)">
+      <text class="label">AUTOMATIC ROUTER EVALUATION</text>
+      <text y="48" class="card-title">Use blind real tasks</text>
+      <rect y="76" width="620" height="80" rx="14" fill="#061521"/>
+      <text x="20" y="111" class="mono small coral-text">&gt; Compare two retry architectures...</text>
+      <text x="20" y="140" class="mono small teal-text">Return tradeoffs. Do not edit.</text>
+      <text y="205" class="body">Measures whether the coordinator chooses well.</text>
+      <text y="245" class="small">Pre-label, repeat, score route and quality separately.</text>
+    </g>
+
+    <g transform="translate(90 1690)">
+      <rect width="1420" height="185" rx="28" fill="#f7f3ea"/>
+      <rect width="16" height="185" rx="8" fill="#ff796d"/>
+      <text x="50" y="52" class="label dark-text">EVIDENCE STANDARD</text>
+      <text x="50" y="96" class="card-title dark-text">Static validation proves configuration. A trace records one observed run.</text>
+      <text x="50" y="134" class="body dark-text">Neither guarantees future routing, quality, latency, or savings. Measure your own project.</text>
+      <rect x="1150" y="48" width="220" height="76" rx="38" fill="#2ed3c6"/>
+      <text x="1260" y="80" text-anchor="middle" class="pill-text">VALIDATE</text>
+      <text x="1260" y="104" text-anchor="middle" class="pill-text">THEN VERIFY</text>
+    </g>
+
+    <text x="90" y="1934" class="small">MIT License | Built by Jeff J Hunter | Inspired by Matt Farmer: mattfarmer.ai/codex-model-routing</text>
+    <text x="1510" y="1934" text-anchor="end" class="small">Claude Code Smart Orchestrator v2</text>
+  </g>
+</svg>

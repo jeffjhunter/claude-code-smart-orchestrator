@@ -1,53 +1,20 @@
-Claude Code gets expensive and messy when one agent tries to do everything.
+Claude Code orchestration should be testable, not just a prompt that sounds smart.
 
-Planning.
+I built the Claude Code Smart Orchestrator Kit v2 with four explicit routes:
 
-Architecture.
+- Architect: Opus with high effort
+- Deep Reasoner: Opus with xhigh effort
+- Fast Worker: Haiku with low effort
+- QA Reviewer: Sonnet with high effort
 
-Debugging.
+The kit includes model aliases, scoped agent definitions, deterministic `@agent-*` proof prompts, automatic-routing experiments, a routing matrix, safe setup guidance, a strict validator, and a runtime-trace verifier.
 
-Boilerplate.
+I ran all four routes through Claude Code 2.1.210 in a disposable project and observed linked Opus, Opus, Haiku, and Sonnet model metadata. The test caught a real defect too: plan mode blocked QA's exact test command, so the shipped QA route now uses default mode with a bounded command contract.
 
-Testing.
+The docs show how to verify one completed agent lifecycle and its reported model metadata through stream JSON. Aliases can be overridden or unavailable, and traces do not attest effective effort, so configuration alone is never treated as proof.
 
-Review.
+This is not a promise of lower cost or better results. It is a practical way to make routing visible, bounded, and measurable against your own baseline.
 
-All inside the same conversation.
+The full kit, visual guide, adversarial tests, and deterministic release archive are free under the MIT License. Built with appreciation for Matt Farmer's original model-routing idea and encouragement.
 
-That is a context problem waiting to happen.
-
-So I built a cleaner system.
-
-The Claude Code Smart Orchestrator Kit shows you how to keep one conversation in charge while routing the right work to four specialized agents:
-
-☑ Architect for plans, boundaries, and tradeoffs
-
-☑ Deep Reasoner for difficult bugs and high-risk decisions
-
-☑ Fast Worker for clear, bounded implementation
-
-☑ QA Reviewer for independent testing and verification
-
-The kit includes:
-
-☑ The complete visual workflow
-
-☑ Four ready-to-copy Claude Code agent files
-
-☑ A project CLAUDE.md routing system
-
-☑ A task-routing decision matrix
-
-☑ Setup instructions and test prompts
-
-☑ Cost and context controls
-
-☑ Common failure fixes
-
-This is not about adding more agents for the sake of it.
-
-It is about keeping deep reasoning focused on the work that deserves it and giving routine work a clear finish line.
-
-I am giving the complete kit away free.
-
-Comment ORCHESTRATE below and I will send it to you.
+Comment ORCHESTRATE and I will send it to you.

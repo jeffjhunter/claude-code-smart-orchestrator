@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose a focused improvement to routing, validation, evidence, or documentation.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Keep proposals evidence-based and free of credentials, private traces,
+        proprietary source, or security-vulnerability details. Follow
+        SECURITY.md for private security reporting.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user-visible limitation or unmet need.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the smallest useful outcome, not just an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and acceptance criteria
+      description: Explain how the improvement should be tested or measured.
+    validations:
+      required: true
+  - type: textarea
+    id: policy
+    attributes:
+      label: Routing and safety impact
+      description: Note model, effort, tools, permissions, compatibility, security, cost, or migration effects.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, private traces, proprietary source, and vulnerability details.
+          required: true
